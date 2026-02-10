@@ -6,6 +6,8 @@
 - 縮放範圍：`50%` 到 `200%`（`10%` 步進）
 - 控制方式：popup 滑桿、`+/-` 按鈕、`Reset`
 - 快捷鍵：`Cmd/Ctrl +`、`Cmd/Ctrl -`、`Cmd/Ctrl 0`
+- 備援快捷鍵（Safari 相容）：`Option + Shift + ↑`、`Option + Shift + ↓`、`Option + Shift + 0`
+- 可在 Safari 擴充功能設定頁自訂 `zoom-in / zoom-out / zoom-reset` 三個快捷鍵
 - 偏好儲存：依 `origin + pathname` 記住每頁倍率
 
 ## 技術堆疊
@@ -40,6 +42,8 @@ npm run build
 - 滑桿：拖曳到目標倍率。
 - 快速按鈕：`-`、`Reset`、`+`。
 - 鍵盤：`Cmd/Ctrl +`、`Cmd/Ctrl -`、`Cmd/Ctrl 0`。
+- 若主快捷鍵被瀏覽器攔截，可改用：`Option + Shift + ↑/↓/0`。
+- 快捷鍵僅在偵測到 Axure 文件容器時生效，其他頁面不會套用縮放。
 
 ## 測試
 ```bash

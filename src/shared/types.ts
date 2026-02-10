@@ -22,7 +22,10 @@ export type RuntimeResponse =
 export type ContentMessage =
   | { type: 'CONTENT_GET_STATE' }
   | { type: 'CONTENT_SET_ZOOM'; zoom: number }
-  | { type: 'CONTENT_RESET_ZOOM' };
+  | { type: 'CONTENT_RESET_ZOOM' }
+  | { type: 'CONTENT_SHORTCUT_IN' }
+  | { type: 'CONTENT_SHORTCUT_OUT' }
+  | { type: 'CONTENT_SHORTCUT_RESET' };
 
 export type ContentResponse =
   | {

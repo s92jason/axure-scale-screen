@@ -1,8 +1,8 @@
-import { DEFAULT_ZOOM } from '../shared/constants';
+import { DEFAULT_ZOOM, ZOOM_STEP } from '../shared/constants';
 import type { ContentMessage, ContentResponse, RuntimeMessage, RuntimeResponse, ZoomLevel } from '../shared/types';
 import { toUrlKey } from '../shared/url';
 import { adjustZoom, toZoomLevel } from '../shared/zoom';
-import { applyZoom, findAxureRoot, getShortcutDelta, isEditableTarget, resetZoom } from './engine';
+import { applyZoom, findAxureRoot, getShortcutDelta, isEditableTarget, isLikelyAxureDocument, resetZoom } from './engine';
 
 interface ContentState {
   isAxure: boolean;
@@ -10,6 +10,8 @@ interface ContentState {
   urlKey: string;
   zoom: ZoomLevel;
 }
+
+type ShortcutMessageType = 'CONTENT_SHORTCUT_IN' | 'CONTENT_SHORTCUT_OUT' | 'CONTENT_SHORTCUT_RESET';
 
 const state: ContentState = {
   isAxure: false,
@@ -71,26 +73,48 @@ async function resetToDefault(): Promise<ZoomLevel> {
 }
 
 function handleShortcuts(): void {
-  document.addEventListener('keydown', (event) => {
-    if (!state.isAxure || isEditableTarget(event.target)) {
-      return;
-    }
+  window.addEventListener(
+    'keydown',
+    (event) => {
+      if (!state.isAxure || isEditableTarget(event.target)) {
+        return;
+      }
 
-    const deltaOrReset = getShortcutDelta(event);
-    if (deltaOrReset === null) {
-      return;
-    }
+      const deltaOrReset = getShortcutDelta(event);
+      if (deltaOrReset === null) {
+        return;
+      }
 
-    event.preventDefault();
+      event.preventDefault();
 
-    if (deltaOrReset === 0) {
-      void resetToDefault();
-      return;
-    }
+      if (deltaOrReset === 0) {
+        void resetToDefault();
+        return;
+      }
 
-    const next = adjustZoom(state.zoom, deltaOrReset);
-    void setZoom(next);
-  });
+      const next = adjustZoom(state.zoom, deltaOrReset);
+      void setZoom(next);
+    },
+    { capture: true }
+  );
+}
+
+async function applyShortcutAction(type: ShortcutMessageType): Promise<ZoomLevel> {
+  if (!state.isAxure || !state.root) {
+    return state.zoom;
+  }
+
+  if (type === 'CONTENT_SHORTCUT_RESET') {
+    return resetToDefault();
+  }
+
+  if (type === 'CONTENT_SHORTCUT_IN') {
+    const next = adjustZoom(state.zoom, ZOOM_STEP);
+    return setZoom(next);
+  }
+
+  const next = adjustZoom(state.zoom, -ZOOM_STEP);
+  return setZoom(next);
 }
 
 function handlePopupMessages(): void {
@@ -156,6 +180,28 @@ function handlePopupMessages(): void {
       return true;
     }
 
+    if (
+      typedMessage.type === 'CONTENT_SHORTCUT_IN' ||
+      typedMessage.type === 'CONTENT_SHORTCUT_OUT' ||
+      typedMessage.type === 'CONTENT_SHORTCUT_RESET'
+    ) {
+      void applyShortcutAction(typedMessage.type)
+        .then((zoom) => {
+          respond({
+            ok: true,
+            data: {
+              isAxure: state.isAxure,
+              urlKey: state.urlKey,
+              zoom
+            }
+          });
+        })
+        .catch((error) => {
+          respond({ ok: false, error: error instanceof Error ? error.message : 'Failed to apply shortcut' });
+        });
+      return true;
+    }
+
     respond({ ok: false, error: 'Unknown content message' });
     return;
   });
@@ -165,8 +211,9 @@ async function bootstrap(): Promise<void> {
   handlePopupMessages();
   handleShortcuts();
 
-  state.root = findAxureRoot();
-  state.isAxure = Boolean(state.root);
+  const foundRoot = findAxureRoot();
+  state.root = foundRoot;
+  state.isAxure = isLikelyAxureDocument(foundRoot);
 
   if (state.root) {
     await initializeFromStorage();

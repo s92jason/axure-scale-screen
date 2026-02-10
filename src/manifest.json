@@ -21,6 +21,17 @@
     },
     "default_popup": "popup.html"
   },
+  "commands": {
+    "zoom-in": {
+      "description": "放大 Axure 內容"
+    },
+    "zoom-out": {
+      "description": "縮小 Axure 內容"
+    },
+    "zoom-reset": {
+      "description": "重置 Axure 縮放"
+    }
+  },
   "background": {
     "service_worker": "background.js",
     "type": "module"

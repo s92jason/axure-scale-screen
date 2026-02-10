@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { applyZoom, findAxureRoot, getShortcutDelta, isEditableTarget, resetZoom } from '../../src/content/engine';
+import {
+  applyZoom,
+  findAxureRoot,
+  getShortcutDelta,
+  isEditableTarget,
+  isLikelyAxureDocument,
+  resetZoom
+} from '../../src/content/engine';
 
 function createAxureDom(): HTMLElement {
   document.body.innerHTML = `
@@ -20,6 +27,21 @@ describe('content engine', () => {
   it('finds axure root', () => {
     createAxureDom();
     expect(findAxureRoot()).not.toBeNull();
+  });
+
+  it('detects likely axure document with runtime hint', () => {
+    const root = createAxureDom();
+    const win = window as Window & { $axure?: unknown };
+    win.$axure = {};
+
+    expect(isLikelyAxureDocument(root)).toBe(true);
+
+    delete win.$axure;
+  });
+
+  it('rejects non-axure document when hints are missing', () => {
+    const root = createAxureDom();
+    expect(isLikelyAxureDocument(root)).toBe(false);
   });
 
   it('applies zoom and creates wrapper', () => {
@@ -52,9 +74,15 @@ describe('content engine', () => {
     const zoomIn = new KeyboardEvent('keydown', { key: '+', ctrlKey: true });
     const zoomOut = new KeyboardEvent('keydown', { key: '-', metaKey: true });
     const reset = new KeyboardEvent('keydown', { key: '0', metaKey: true });
+    const fallbackIn = new KeyboardEvent('keydown', { code: 'ArrowUp', altKey: true, shiftKey: true });
+    const fallbackOut = new KeyboardEvent('keydown', { code: 'ArrowDown', altKey: true, shiftKey: true });
+    const fallbackReset = new KeyboardEvent('keydown', { code: 'Digit0', altKey: true, shiftKey: true });
 
     expect(getShortcutDelta(zoomIn)).toBe(10);
     expect(getShortcutDelta(zoomOut)).toBe(-10);
     expect(getShortcutDelta(reset)).toBe(0);
+    expect(getShortcutDelta(fallbackIn)).toBe(10);
+    expect(getShortcutDelta(fallbackOut)).toBe(-10);
+    expect(getShortcutDelta(fallbackReset)).toBe(0);
   });
 });

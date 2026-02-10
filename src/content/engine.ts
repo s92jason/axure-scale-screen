@@ -27,6 +27,29 @@ export function findAxureRoot(doc: Document = document): HTMLElement | null {
   return null;
 }
 
+export function isLikelyAxureDocument(
+  root: HTMLElement | null,
+  doc: Document = document,
+  win: Window = window
+): root is HTMLElement {
+  if (!root) {
+    return false;
+  }
+
+  const rootMatchesKnownSelector = AXURE_ROOT_SELECTORS.some((selector) => root.matches(selector));
+  if (!rootMatchesKnownSelector) {
+    return false;
+  }
+
+  const runtimeWindow = win as Window & { $axure?: unknown };
+  const hasAxureRuntime = typeof runtimeWindow.$axure !== 'undefined';
+  const hasAxureAssets = Boolean(
+    doc.querySelector('script[src*="axure"], script[src*="/axshare"], link[href*="axure"]')
+  );
+
+  return hasAxureRuntime || hasAxureAssets;
+}
+
 export function ensureScaleWrapper(root: HTMLElement): HTMLDivElement {
   const parent = root.parentElement;
   if (!parent) {
@@ -81,19 +104,36 @@ export function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 export function getShortcutDelta(event: KeyboardEvent): number | null {
+  const code = event.code;
+
+  // Fallback set for Safari/keyboard-layout conflicts.
+  if (event.altKey && event.shiftKey && !event.metaKey && !event.ctrlKey) {
+    if (code === 'ArrowUp') {
+      return ZOOM_STEP;
+    }
+
+    if (code === 'ArrowDown') {
+      return -ZOOM_STEP;
+    }
+
+    if (code === 'Digit0' || code === 'Numpad0') {
+      return 0;
+    }
+  }
+
   if (!(event.metaKey || event.ctrlKey) || event.altKey) {
     return null;
   }
 
-  if (event.key === '=' || event.key === '+') {
+  if (code === 'Equal' || code === 'NumpadAdd' || event.key === '+' || event.key === '=') {
     return ZOOM_STEP;
   }
 
-  if (event.key === '-') {
+  if (code === 'Minus' || code === 'NumpadSubtract' || event.key === '-') {
     return -ZOOM_STEP;
   }
 
-  if (event.key === '0') {
+  if (code === 'Digit0' || code === 'Numpad0' || event.key === '0') {
     return 0;
   }
 
