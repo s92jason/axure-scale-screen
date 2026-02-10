@@ -3,17 +3,19 @@ import type { ContentMessage, ContentResponse, ZoomLevel } from '../shared/types
 import { adjustZoom, toZoomLevel } from '../shared/zoom';
 
 const statusEl = document.querySelector<HTMLParagraphElement>('#status');
+const siteMetaEl = document.querySelector<HTMLParagraphElement>('#siteMeta');
 const rangeEl = document.querySelector<HTMLInputElement>('#zoomRange');
 const valueEl = document.querySelector<HTMLOutputElement>('#zoomValue');
 const zoomInEl = document.querySelector<HTMLButtonElement>('#zoomIn');
 const zoomOutEl = document.querySelector<HTMLButtonElement>('#zoomOut');
 const resetEl = document.querySelector<HTMLButtonElement>('#reset');
 
-if (!statusEl || !rangeEl || !valueEl || !zoomInEl || !zoomOutEl || !resetEl) {
+if (!statusEl || !siteMetaEl || !rangeEl || !valueEl || !zoomInEl || !zoomOutEl || !resetEl) {
   throw new Error('找不到 Popup 必要的 UI 元件');
 }
 
 const status = statusEl;
+const siteMeta = siteMetaEl;
 const range = rangeEl;
 const value = valueEl;
 const zoomIn = zoomInEl;
@@ -24,6 +26,32 @@ let tabId: number | null = null;
 let activeFrameId: number | null = null;
 let isAxurePage = false;
 let currentZoom = DEFAULT_ZOOM as ZoomLevel;
+
+function shortenText(input: string, maxLength: number): string {
+  if (input.length <= maxLength) {
+    return input;
+  }
+
+  return `${input.slice(0, maxLength - 1)}…`;
+}
+
+function toDisplayUrl(urlKey: string): string {
+  try {
+    const parsed = new URL(urlKey);
+    return shortenText(`${parsed.hostname}${parsed.pathname}`, 44);
+  } catch {
+    return shortenText(urlKey, 44);
+  }
+}
+
+function updateSavedStateText(urlKey: string): void {
+  status.textContent = '已儲存此頁倍率';
+  siteMeta.textContent = toDisplayUrl(urlKey);
+}
+
+function clearSiteMeta(): void {
+  siteMeta.textContent = '';
+}
 
 function setControlsDisabled(disabled: boolean): void {
   range.disabled = disabled;
@@ -221,6 +249,7 @@ async function refreshState(): Promise<void> {
   if (!result.ok) {
     activeFrameId = null;
     isAxurePage = false;
+    clearSiteMeta();
 
     if (result.hasAnyContentResponse) {
       status.textContent = '此頁面未偵測到 Axure 容器。';
@@ -242,8 +271,7 @@ async function refreshState(): Promise<void> {
   activeFrameId = result.frameId;
   isAxurePage = result.response.data.isAxure;
   updateZoomDisplay(result.response.data.zoom);
-
-  status.textContent = `已儲存此頁倍率：${result.response.data.urlKey}`;
+  updateSavedStateText(result.response.data.urlKey);
   setControlsDisabled(false);
 }
 
@@ -255,11 +283,12 @@ async function applyZoomFromInput(rawZoom: number): Promise<void> {
   const response = await sendToContent({ type: 'CONTENT_SET_ZOOM', zoom: rawZoom }, activeFrameId);
   if (!response.ok) {
     status.textContent = `失敗：${response.error}`;
+    clearSiteMeta();
     return;
   }
 
   updateZoomDisplay(response.data.zoom);
-  status.textContent = `已儲存此頁倍率：${response.data.urlKey}`;
+  updateSavedStateText(response.data.urlKey);
 }
 
 function bindEvents(): void {
@@ -294,11 +323,12 @@ function bindEvents(): void {
     void sendToContent({ type: 'CONTENT_RESET_ZOOM' }, activeFrameId).then((response) => {
       if (!response.ok) {
         status.textContent = `失敗：${response.error}`;
+        clearSiteMeta();
         return;
       }
 
       updateZoomDisplay(response.data.zoom);
-      status.textContent = `已儲存此頁倍率：${response.data.urlKey}`;
+      updateSavedStateText(response.data.urlKey);
     });
   });
 }
@@ -310,6 +340,7 @@ async function bootstrap(): Promise<void> {
 
   if (tabId === null) {
     status.textContent = '找不到目前啟用分頁。';
+    clearSiteMeta();
     return;
   }
 
