@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Axure Scale</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="panel">
+      <h1>Axure Scale</h1>
+      <p id="status" class="status">Loading current tab…</p>
+
+      <label for="zoomRange">Zoom</label>
+      <div class="zoom-row">
+        <input id="zoomRange" type="range" min="50" max="200" step="10" value="100" />
+        <output id="zoomValue">100%</output>
+      </div>
+
+      <div class="actions">
+        <button id="zoomOut" type="button">-</button>
+        <button id="reset" type="button">Reset</button>
+        <button id="zoomIn" type="button">+</button>
+      </div>
+
+      <p class="hint">Shortcuts: Cmd/Ctrl + / - / 0</p>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
