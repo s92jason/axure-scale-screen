@@ -76,6 +76,7 @@ async function main() {
   await buildBackground();
   await buildContent();
   cpSync(resolve(rootDir, 'src/manifest.json'), resolve(distDir, 'manifest.json'));
+  cpSync(resolve(rootDir, 'src/icons'), resolve(distDir, 'icons'), { recursive: true, force: true });
 }
 
 main().catch((error) => {

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="64" y1="48" x2="448" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5BA7FF" />
+      <stop offset="1" stop-color="#2A6CFF" />
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(168 136) rotate(35) scale(245 218)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.55" />
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect x="32" y="32" width="448" height="448" rx="120" fill="url(#bg)" />
+  <rect x="32" y="32" width="448" height="448" rx="120" fill="url(#glow)" />
+
+  <g fill="#FFFFFF">
+    <path d="M198.9 138c-47.4 0-85.9 38.5-85.9 85.9s38.5 85.9 85.9 85.9 85.9-38.5 85.9-85.9S246.4 138 198.9 138zm0 40.8c24.9 0 45.1 20.2 45.1 45.1S223.8 269 198.9 269s-45.1-20.2-45.1-45.1 20.2-45.1 45.1-45.1z" />
+    <path d="M270.2 285.8l20.7-20.7 91 91-20.7 20.7-91-91z" opacity="0.98"/>
+  </g>
+
+  <path d="M177 327l72-140h36l72 140h-35l-15-31h-80l-15 31h-35zm65-59h51l-25.5-52-25.5 52z" fill="#EAF3FF" opacity="0.95"/>
+</svg>
