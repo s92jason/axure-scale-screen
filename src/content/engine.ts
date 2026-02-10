@@ -3,9 +3,9 @@ import {
   DEFAULT_ZOOM,
   SCALE_WRAPPER_ATTR,
   ZOOM_STEP
-} from '@shared/constants';
-import type { ZoomLevel } from '@shared/types';
-import { toZoomLevel } from '@shared/zoom';
+} from '../shared/constants';
+import type { ZoomLevel } from '../shared/types';
+import { toZoomLevel } from '../shared/zoom';
 
 function updateWrapperSize(root: HTMLElement, wrapper: HTMLDivElement, zoom: ZoomLevel): void {
   const scale = zoom / 100;

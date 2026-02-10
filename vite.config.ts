@@ -1,20 +1,15 @@
-import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
+import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      '@shared': resolve(__dirname, 'src/shared')
-    }
-  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        popup: resolve(__dirname, 'src/popup/index.html'),
-        background: resolve(__dirname, 'src/background/index.ts'),
-        content: resolve(__dirname, 'src/content/axureZoom.ts')
+        popup: fileURLToPath(new URL('./popup.html', import.meta.url)),
+        background: fileURLToPath(new URL('./src/background/index.ts', import.meta.url)),
+        content: fileURLToPath(new URL('./src/content/axureZoom.ts', import.meta.url))
       },
       output: {
         entryFileNames: (chunkInfo) => {

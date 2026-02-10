@@ -1,7 +1,7 @@
-import { DEFAULT_ZOOM } from '@shared/constants';
-import type { ContentMessage, ContentResponse, RuntimeMessage, RuntimeResponse, ZoomLevel } from '@shared/types';
-import { toUrlKey } from '@shared/url';
-import { adjustZoom, toZoomLevel } from '@shared/zoom';
+import { DEFAULT_ZOOM } from '../shared/constants';
+import type { ContentMessage, ContentResponse, RuntimeMessage, RuntimeResponse, ZoomLevel } from '../shared/types';
+import { toUrlKey } from '../shared/url';
+import { adjustZoom, toZoomLevel } from '../shared/zoom';
 import { applyZoom, findAxureRoot, getShortcutDelta, isEditableTarget, resetZoom } from './engine';
 
 interface ContentState {
@@ -162,6 +162,9 @@ function handlePopupMessages(): void {
 }
 
 async function bootstrap(): Promise<void> {
+  handlePopupMessages();
+  handleShortcuts();
+
   state.root = findAxureRoot();
   state.isAxure = Boolean(state.root);
 
@@ -169,9 +172,6 @@ async function bootstrap(): Promise<void> {
     await initializeFromStorage();
     applyCurrentZoom();
   }
-
-  handleShortcuts();
-  handlePopupMessages();
 
   window.addEventListener('resize', () => {
     if (!state.root || !state.isAxure) {

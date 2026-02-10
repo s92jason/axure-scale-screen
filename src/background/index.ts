@@ -1,5 +1,5 @@
-import { getZoomState, resetZoomState, setZoomState } from '@shared/storage';
-import { isRuntimeMessage } from '@shared/types';
+import { getZoomState, resetZoomState, setZoomState } from '../shared/storage';
+import { isRuntimeMessage } from '../shared/types';
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (!isRuntimeMessage(message)) {

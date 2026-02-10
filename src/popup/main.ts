@@ -1,6 +1,6 @@
-import { DEFAULT_ZOOM, MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from '@shared/constants';
-import type { ContentMessage, ContentResponse, ZoomLevel } from '@shared/types';
-import { adjustZoom, toZoomLevel } from '@shared/zoom';
+import { DEFAULT_ZOOM, MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from '../shared/constants';
+import type { ContentMessage, ContentResponse, ZoomLevel } from '../shared/types';
+import { adjustZoom, toZoomLevel } from '../shared/zoom';
 
 const statusEl = document.querySelector<HTMLParagraphElement>('#status');
 const rangeEl = document.querySelector<HTMLInputElement>('#zoomRange');
@@ -10,24 +10,32 @@ const zoomOutEl = document.querySelector<HTMLButtonElement>('#zoomOut');
 const resetEl = document.querySelector<HTMLButtonElement>('#reset');
 
 if (!statusEl || !rangeEl || !valueEl || !zoomInEl || !zoomOutEl || !resetEl) {
-  throw new Error('Popup UI elements are missing');
+  throw new Error('找不到 Popup 必要的 UI 元件');
 }
 
+const status = statusEl;
+const range = rangeEl;
+const value = valueEl;
+const zoomIn = zoomInEl;
+const zoomOut = zoomOutEl;
+const reset = resetEl;
+
 let tabId: number | null = null;
+let activeFrameId: number | null = null;
 let isAxurePage = false;
 let currentZoom = DEFAULT_ZOOM as ZoomLevel;
 
 function setControlsDisabled(disabled: boolean): void {
-  rangeEl.disabled = disabled;
-  zoomInEl.disabled = disabled;
-  zoomOutEl.disabled = disabled;
-  resetEl.disabled = disabled;
+  range.disabled = disabled;
+  zoomIn.disabled = disabled;
+  zoomOut.disabled = disabled;
+  reset.disabled = disabled;
 }
 
 function updateZoomDisplay(zoom: ZoomLevel): void {
   currentZoom = zoom;
-  rangeEl.value = String(zoom);
-  valueEl.value = `${zoom}%`;
+  range.value = String(zoom);
+  value.value = `${zoom}%`;
 }
 
 function queryActiveTabId(): Promise<number | null> {
@@ -38,93 +46,259 @@ function queryActiveTabId(): Promise<number | null> {
   });
 }
 
-function sendToContent(message: ContentMessage): Promise<ContentResponse> {
+function sendToContent(message: ContentMessage, frameId?: number): Promise<ContentResponse> {
   return new Promise((resolve) => {
     if (tabId === null) {
-      resolve({ ok: false, error: 'No active tab found' });
+      resolve({ ok: false, error: '找不到目前啟用的分頁' });
       return;
     }
 
-    chrome.tabs.sendMessage(tabId, message, (response: ContentResponse | undefined) => {
+    const callback = (response: ContentResponse | undefined): void => {
       if (chrome.runtime.lastError || !response) {
-        resolve({ ok: false, error: chrome.runtime.lastError?.message ?? 'No content response' });
+        resolve({ ok: false, error: chrome.runtime.lastError?.message ?? '內容腳本沒有回應' });
         return;
       }
 
       resolve(response);
-    });
+    };
+
+    if (frameId === undefined) {
+      chrome.tabs.sendMessage(tabId, message, callback);
+      return;
+    }
+
+    chrome.tabs.sendMessage(tabId, message, { frameId }, callback);
   });
 }
 
+function shouldRetryByInjection(errorText: string): boolean {
+  const normalized = errorText.toLowerCase();
+  return (
+    normalized.includes('receiving end does not exist') ||
+    normalized.includes('could not establish connection') ||
+    normalized.includes('no content response') ||
+    normalized.includes('內容腳本沒有回應')
+  );
+}
+
+function isPermissionError(errorText: string): boolean {
+  const normalized = errorText.toLowerCase();
+  return (
+    normalized.includes('cannot access') ||
+    normalized.includes('not allowed') ||
+    normalized.includes('permission') ||
+    normalized.includes('access to the specified host is not allowed')
+  );
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+function uniqueFrameIds(frameIds: number[]): number[] {
+  return [...new Set(frameIds)].sort((a, b) => a - b);
+}
+
+function discoverFrameIds(): Promise<number[]> {
+  return new Promise((resolve) => {
+    if (tabId === null || !chrome.scripting?.executeScript) {
+      resolve([]);
+      return;
+    }
+
+    chrome.scripting.executeScript(
+      {
+        target: { tabId, allFrames: true },
+        func: () => {
+          return window.location.href;
+        }
+      },
+      (results) => {
+        if (chrome.runtime.lastError || !results) {
+          resolve([]);
+          return;
+        }
+
+        const frameIds = results
+          .filter((item) => typeof item.frameId === 'number')
+          .map((item) => item.frameId)
+          .filter((value): value is number => typeof value === 'number');
+
+        resolve(uniqueFrameIds(frameIds));
+      }
+    );
+  });
+}
+
+function injectContentScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (tabId === null || !chrome.scripting?.executeScript) {
+      resolve(false);
+      return;
+    }
+
+    chrome.scripting.executeScript(
+      {
+        target: { tabId, allFrames: true },
+        files: ['content.js']
+      },
+      () => {
+        if (chrome.runtime.lastError) {
+          resolve(false);
+          return;
+        }
+
+        resolve(true);
+      }
+    );
+  });
+}
+
+async function collectFrameStates(frameIds: number[]): Promise<Array<{ frameId: number; response: ContentResponse }>> {
+  const targetFrames = uniqueFrameIds(frameIds.length > 0 ? frameIds : [0]);
+
+  return Promise.all(
+    targetFrames.map(async (frameId) => ({
+      frameId,
+      response: await sendToContent({ type: 'CONTENT_GET_STATE' }, frameId)
+    }))
+  );
+}
+
+async function loadAxureState(): Promise<
+  | { ok: true; frameId: number; response: Extract<ContentResponse, { ok: true }> }
+  | { ok: false; error: string; hasAnyContentResponse: boolean }
+> {
+  let candidates = await discoverFrameIds();
+  if (candidates.length === 0) {
+    candidates = [0];
+  }
+
+  let states = await collectFrameStates(candidates);
+  let matched = states.find((item) => item.response.ok && item.response.data.isAxure);
+
+  if (!matched) {
+    const firstErrorItem = states.find(
+      (item): item is { frameId: number; response: Extract<ContentResponse, { ok: false }> } => !item.response.ok
+    );
+    if (firstErrorItem && shouldRetryByInjection(firstErrorItem.response.error)) {
+      const injected = await injectContentScript();
+      if (injected) {
+        await wait(120);
+        candidates = await discoverFrameIds();
+        if (candidates.length === 0) {
+          candidates = [0];
+        }
+        states = await collectFrameStates(candidates);
+        matched = states.find((item) => item.response.ok && item.response.data.isAxure);
+
+        if (!matched) {
+          await wait(180);
+          states = await collectFrameStates(candidates);
+          matched = states.find((item) => item.response.ok && item.response.data.isAxure);
+        }
+      }
+    }
+  }
+
+  if (matched && matched.response.ok) {
+    return { ok: true, frameId: matched.frameId, response: matched.response };
+  }
+
+  const firstErrorItem = states.find(
+    (item): item is { frameId: number; response: Extract<ContentResponse, { ok: false }> } => !item.response.ok
+  );
+  const firstError = firstErrorItem?.response.error ?? '內容腳本沒有回應';
+  const hasAnyContentResponse = states.some((item) => item.response.ok);
+  return { ok: false, error: firstError, hasAnyContentResponse };
+}
+
 async function refreshState(): Promise<void> {
-  const response = await sendToContent({ type: 'CONTENT_GET_STATE' });
-  if (!response.ok) {
-    statusEl.textContent = 'This tab is not ready for Axure scaling.';
+  const result = await loadAxureState();
+
+  if (!result.ok) {
+    activeFrameId = null;
+    isAxurePage = false;
+
+    if (result.hasAnyContentResponse) {
+      status.textContent = '此頁面未偵測到 Axure 容器。';
+      setControlsDisabled(true);
+      return;
+    }
+
+    if (isPermissionError(result.error)) {
+      status.textContent = '目前沒有此網站存取權限，請到 Safari 外掛設定允許此網站後重試。';
+      setControlsDisabled(true);
+      return;
+    }
+
+    status.textContent = `此分頁尚未準備好 Axure 縮放功能（${result.error}）。請先重新整理頁面，並確認已允許此網站權限。`;
     setControlsDisabled(true);
     return;
   }
 
-  isAxurePage = response.data.isAxure;
-  updateZoomDisplay(response.data.zoom);
+  activeFrameId = result.frameId;
+  isAxurePage = result.response.data.isAxure;
+  updateZoomDisplay(result.response.data.zoom);
 
-  if (!isAxurePage) {
-    statusEl.textContent = 'No Axure container detected on this page.';
-    setControlsDisabled(true);
-    return;
-  }
-
-  statusEl.textContent = `Saved per page: ${response.data.urlKey}`;
+  status.textContent = `已儲存此頁倍率：${result.response.data.urlKey}`;
   setControlsDisabled(false);
 }
 
 async function applyZoomFromInput(rawZoom: number): Promise<void> {
-  if (!isAxurePage) {
+  if (!isAxurePage || activeFrameId === null) {
     return;
   }
 
-  const response = await sendToContent({ type: 'CONTENT_SET_ZOOM', zoom: rawZoom });
+  const response = await sendToContent({ type: 'CONTENT_SET_ZOOM', zoom: rawZoom }, activeFrameId);
   if (!response.ok) {
-    statusEl.textContent = `Failed: ${response.error}`;
+    status.textContent = `失敗：${response.error}`;
     return;
   }
 
   updateZoomDisplay(response.data.zoom);
-  statusEl.textContent = `Saved per page: ${response.data.urlKey}`;
+  status.textContent = `已儲存此頁倍率：${response.data.urlKey}`;
 }
 
 function bindEvents(): void {
-  rangeEl.min = String(MIN_ZOOM);
-  rangeEl.max = String(MAX_ZOOM);
-  rangeEl.step = String(ZOOM_STEP);
+  range.min = String(MIN_ZOOM);
+  range.max = String(MAX_ZOOM);
+  range.step = String(ZOOM_STEP);
 
-  rangeEl.addEventListener('input', () => {
-    const zoom = toZoomLevel(Number(rangeEl.value));
+  range.addEventListener('input', () => {
+    const zoom = toZoomLevel(Number(range.value));
     updateZoomDisplay(zoom);
   });
 
-  rangeEl.addEventListener('change', () => {
-    void applyZoomFromInput(Number(rangeEl.value));
+  range.addEventListener('change', () => {
+    void applyZoomFromInput(Number(range.value));
   });
 
-  zoomOutEl.addEventListener('click', () => {
+  zoomOut.addEventListener('click', () => {
     const next = adjustZoom(currentZoom, -ZOOM_STEP);
     void applyZoomFromInput(next);
   });
 
-  zoomInEl.addEventListener('click', () => {
+  zoomIn.addEventListener('click', () => {
     const next = adjustZoom(currentZoom, ZOOM_STEP);
     void applyZoomFromInput(next);
   });
 
-  resetEl.addEventListener('click', () => {
-    void sendToContent({ type: 'CONTENT_RESET_ZOOM' }).then((response) => {
+  reset.addEventListener('click', () => {
+    if (activeFrameId === null) {
+      return;
+    }
+
+    void sendToContent({ type: 'CONTENT_RESET_ZOOM' }, activeFrameId).then((response) => {
       if (!response.ok) {
-        statusEl.textContent = `Failed: ${response.error}`;
+        status.textContent = `失敗：${response.error}`;
         return;
       }
 
       updateZoomDisplay(response.data.zoom);
-      statusEl.textContent = `Saved per page: ${response.data.urlKey}`;
+      status.textContent = `已儲存此頁倍率：${response.data.urlKey}`;
     });
   });
 }
@@ -135,7 +309,7 @@ async function bootstrap(): Promise<void> {
   tabId = await queryActiveTabId();
 
   if (tabId === null) {
-    statusEl.textContent = 'No active tab.';
+    status.textContent = '找不到目前啟用分頁。';
     return;
   }
 
