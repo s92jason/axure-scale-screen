@@ -5,3 +5,5 @@ dist
 coverage
 .commit_bundle/
 *.xcuserstate
+xcuserdata/
+.claude/settings.local.json

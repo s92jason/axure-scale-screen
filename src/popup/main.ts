@@ -63,7 +63,9 @@ function setControlsDisabled(disabled: boolean): void {
 function updateZoomDisplay(zoom: ZoomLevel): void {
   currentZoom = zoom;
   range.value = String(zoom);
-  value.value = `${zoom}%`;
+  value.value = String(zoom);
+  const pct = ((zoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100;
+  range.style.setProperty('--zoom-pct', `${pct}%`);
 }
 
 function queryActiveTabId(): Promise<number | null> {

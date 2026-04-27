@@ -7,76 +7,78 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E8131C502F3AFFEF003009D0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8131C4F2F3AFFEF003009D0 /* AppDelegate.swift */; };
-		E8131C522F3AFFEF003009D0 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8131C512F3AFFEF003009D0 /* SceneDelegate.swift */; };
-		E8131C552F3AFFEF003009D0 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E8131C532F3AFFEF003009D0 /* LaunchScreen.storyboard */; };
-		E8131C582F3AFFEF003009D0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E8131C562F3AFFEF003009D0 /* Main.storyboard */; };
-		E8131C612F3AFFEF003009D0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8131C602F3AFFEF003009D0 /* AppDelegate.swift */; };
-		E8131C642F3AFFEF003009D0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E8131C622F3AFFEF003009D0 /* Main.storyboard */; };
-		E8131C6B2F3AFFEF003009D0 /* AxureScaleScreen Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E8131C6A2F3AFFEF003009D0 /* AxureScaleScreen Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		E8131C752F3AFFEF003009D0 /* AxureScaleScreen Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E8131C742F3AFFEF003009D0 /* AxureScaleScreen Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		E8131C7A2F3AFFEF003009D0 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = E8131C3F2F3AFFED003009D0 /* Main.html */; };
-		E8131C7B2F3AFFEF003009D0 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = E8131C3F2F3AFFED003009D0 /* Main.html */; };
-		E8131C7C2F3AFFEF003009D0 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = E8131C412F3AFFED003009D0 /* Icon.png */; };
-		E8131C7D2F3AFFEF003009D0 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = E8131C412F3AFFED003009D0 /* Icon.png */; };
-		E8131C7E2F3AFFEF003009D0 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = E8131C422F3AFFED003009D0 /* Style.css */; };
-		E8131C7F2F3AFFEF003009D0 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = E8131C422F3AFFED003009D0 /* Style.css */; };
-		E8131C802F3AFFEF003009D0 /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = E8131C432F3AFFED003009D0 /* Script.js */; };
-		E8131C812F3AFFEF003009D0 /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = E8131C432F3AFFED003009D0 /* Script.js */; };
-		E8131C822F3AFFEF003009D0 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8131C442F3AFFED003009D0 /* ViewController.swift */; };
-		E8131C832F3AFFEF003009D0 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8131C442F3AFFED003009D0 /* ViewController.swift */; };
-		E8131C842F3AFFEF003009D0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E8131C452F3AFFEE003009D0 /* Assets.xcassets */; };
-		E8131C852F3AFFEF003009D0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E8131C452F3AFFEE003009D0 /* Assets.xcassets */; };
-		E8131C862F3AFFEF003009D0 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8131C472F3AFFEE003009D0 /* SafariWebExtensionHandler.swift */; };
-		E8131C872F3AFFEF003009D0 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8131C472F3AFFEE003009D0 /* SafariWebExtensionHandler.swift */; };
-		E8131C9E2F3AFFEF003009D0 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = E8131C992F3AFFEF003009D0 /* background.js */; };
-		E8131C9F2F3AFFEF003009D0 /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = E8131C9A2F3AFFEF003009D0 /* popup.html */; };
-		E8131CA02F3AFFEF003009D0 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = E8131C9B2F3AFFEF003009D0 /* manifest.json */; };
-		E8131CA12F3AFFEF003009D0 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = E8131C9C2F3AFFEF003009D0 /* content.js */; };
-		E8131CA22F3AFFEF003009D0 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = E8131C9D2F3AFFEF003009D0 /* assets */; };
-		E8131CA32F3AFFEF003009D0 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = E8131C992F3AFFEF003009D0 /* background.js */; };
-		E8131CA42F3AFFEF003009D0 /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = E8131C9A2F3AFFEF003009D0 /* popup.html */; };
-		E8131CA52F3AFFEF003009D0 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = E8131C9B2F3AFFEF003009D0 /* manifest.json */; };
-		E8131CA62F3AFFEF003009D0 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = E8131C9C2F3AFFEF003009D0 /* content.js */; };
-		E8131CA72F3AFFEF003009D0 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = E8131C9D2F3AFFEF003009D0 /* assets */; };
+		E8626B992F9F0C8000CB5B8B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8626B982F9F0C8000CB5B8B /* AppDelegate.swift */; };
+		E8626B9B2F9F0C8000CB5B8B /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8626B9A2F9F0C8000CB5B8B /* SceneDelegate.swift */; };
+		E8626B9E2F9F0C8000CB5B8B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E8626B9C2F9F0C8000CB5B8B /* LaunchScreen.storyboard */; };
+		E8626BA12F9F0C8000CB5B8B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E8626B9F2F9F0C8000CB5B8B /* Main.storyboard */; };
+		E8626BAA2F9F0C8000CB5B8B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8626BA92F9F0C8000CB5B8B /* AppDelegate.swift */; };
+		E8626BAD2F9F0C8000CB5B8B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E8626BAB2F9F0C8000CB5B8B /* Main.storyboard */; };
+		E8626BB42F9F0C8000CB5B8B /* AxureScaleScreen Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E8626BB32F9F0C8000CB5B8B /* AxureScaleScreen Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E8626BBE2F9F0C8000CB5B8B /* AxureScaleScreen Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E8626BBD2F9F0C8000CB5B8B /* AxureScaleScreen Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E8626BC32F9F0C8000CB5B8B /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = E8626B882F9F0C7F00CB5B8B /* Main.html */; };
+		E8626BC42F9F0C8000CB5B8B /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = E8626B882F9F0C7F00CB5B8B /* Main.html */; };
+		E8626BC52F9F0C8000CB5B8B /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = E8626B8A2F9F0C7F00CB5B8B /* Icon.png */; };
+		E8626BC62F9F0C8000CB5B8B /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = E8626B8A2F9F0C7F00CB5B8B /* Icon.png */; };
+		E8626BC72F9F0C8000CB5B8B /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = E8626B8B2F9F0C7F00CB5B8B /* Style.css */; };
+		E8626BC82F9F0C8000CB5B8B /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = E8626B8B2F9F0C7F00CB5B8B /* Style.css */; };
+		E8626BC92F9F0C8000CB5B8B /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = E8626B8C2F9F0C7F00CB5B8B /* Script.js */; };
+		E8626BCA2F9F0C8000CB5B8B /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = E8626B8C2F9F0C7F00CB5B8B /* Script.js */; };
+		E8626BCB2F9F0C8000CB5B8B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8626B8D2F9F0C7F00CB5B8B /* ViewController.swift */; };
+		E8626BCC2F9F0C8000CB5B8B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8626B8D2F9F0C7F00CB5B8B /* ViewController.swift */; };
+		E8626BCD2F9F0C8000CB5B8B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E8626B8E2F9F0C8000CB5B8B /* Assets.xcassets */; };
+		E8626BCE2F9F0C8000CB5B8B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E8626B8E2F9F0C8000CB5B8B /* Assets.xcassets */; };
+		E8626BCF2F9F0C8000CB5B8B /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8626B902F9F0C8000CB5B8B /* SafariWebExtensionHandler.swift */; };
+		E8626BD02F9F0C8000CB5B8B /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8626B902F9F0C8000CB5B8B /* SafariWebExtensionHandler.swift */; };
+		E8626BE82F9F0C8000CB5B8B /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = E8626BE22F9F0C8000CB5B8B /* background.js */; };
+		E8626BE92F9F0C8000CB5B8B /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = E8626BE32F9F0C8000CB5B8B /* popup.html */; };
+		E8626BEA2F9F0C8000CB5B8B /* icons in Resources */ = {isa = PBXBuildFile; fileRef = E8626BE42F9F0C8000CB5B8B /* icons */; };
+		E8626BEB2F9F0C8000CB5B8B /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = E8626BE52F9F0C8000CB5B8B /* manifest.json */; };
+		E8626BEC2F9F0C8000CB5B8B /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = E8626BE62F9F0C8000CB5B8B /* content.js */; };
+		E8626BED2F9F0C8000CB5B8B /* assets in Resources */ = {isa = PBXBuildFile; fileRef = E8626BE72F9F0C8000CB5B8B /* assets */; };
+		E8626BEE2F9F0C8000CB5B8B /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = E8626BE22F9F0C8000CB5B8B /* background.js */; };
+		E8626BEF2F9F0C8000CB5B8B /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = E8626BE32F9F0C8000CB5B8B /* popup.html */; };
+		E8626BF02F9F0C8000CB5B8B /* icons in Resources */ = {isa = PBXBuildFile; fileRef = E8626BE42F9F0C8000CB5B8B /* icons */; };
+		E8626BF12F9F0C8000CB5B8B /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = E8626BE52F9F0C8000CB5B8B /* manifest.json */; };
+		E8626BF22F9F0C8000CB5B8B /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = E8626BE62F9F0C8000CB5B8B /* content.js */; };
+		E8626BF32F9F0C8000CB5B8B /* assets in Resources */ = {isa = PBXBuildFile; fileRef = E8626BE72F9F0C8000CB5B8B /* assets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		E8131C6C2F3AFFEF003009D0 /* PBXContainerItemProxy */ = {
+		E8626BB52F9F0C8000CB5B8B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = E8131C392F3AFFED003009D0 /* Project object */;
+			containerPortal = E8626B822F9F0C7E00CB5B8B /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = E8131C692F3AFFEF003009D0;
+			remoteGlobalIDString = E8626BB22F9F0C8000CB5B8B;
 			remoteInfo = "AxureScaleScreen Extension (iOS)";
 		};
-		E8131C762F3AFFEF003009D0 /* PBXContainerItemProxy */ = {
+		E8626BBF2F9F0C8000CB5B8B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = E8131C392F3AFFED003009D0 /* Project object */;
+			containerPortal = E8626B822F9F0C7E00CB5B8B /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = E8131C732F3AFFEF003009D0;
+			remoteGlobalIDString = E8626BBC2F9F0C8000CB5B8B;
 			remoteInfo = "AxureScaleScreen Extension (macOS)";
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		E8131C8D2F3AFFEF003009D0 /* Embed Foundation Extensions */ = {
+		E8626BD62F9F0C8000CB5B8B /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				E8131C6B2F3AFFEF003009D0 /* AxureScaleScreen Extension.appex in Embed Foundation Extensions */,
+				E8626BB42F9F0C8000CB5B8B /* AxureScaleScreen Extension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E8131C942F3AFFEF003009D0 /* Embed Foundation Extensions */ = {
+		E8626BDD2F9F0C8000CB5B8B /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				E8131C752F3AFFEF003009D0 /* AxureScaleScreen Extension.appex in Embed Foundation Extensions */,
+				E8626BBE2F9F0C8000CB5B8B /* AxureScaleScreen Extension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -84,57 +86,58 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		E8131C402F3AFFED003009D0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
-		E8131C412F3AFFED003009D0 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
-		E8131C422F3AFFED003009D0 /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
-		E8131C432F3AFFED003009D0 /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
-		E8131C442F3AFFED003009D0 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		E8131C452F3AFFEE003009D0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		E8131C472F3AFFEE003009D0 /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
-		E8131C4C2F3AFFEF003009D0 /* AxureScaleScreen.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AxureScaleScreen.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		E8131C4F2F3AFFEF003009D0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		E8131C512F3AFFEF003009D0 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		E8131C542F3AFFEF003009D0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		E8131C572F3AFFEF003009D0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		E8131C592F3AFFEF003009D0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		E8131C5E2F3AFFEF003009D0 /* AxureScaleScreen.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AxureScaleScreen.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		E8131C602F3AFFEF003009D0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		E8131C632F3AFFEF003009D0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		E8131C652F3AFFEF003009D0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		E8131C6A2F3AFFEF003009D0 /* AxureScaleScreen Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "AxureScaleScreen Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E8131C6F2F3AFFEF003009D0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		E8131C742F3AFFEF003009D0 /* AxureScaleScreen Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "AxureScaleScreen Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E8131C792F3AFFEF003009D0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		E8131C992F3AFFEF003009D0 /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = ../../../dist/background.js; sourceTree = "<group>"; };
-		E8131C9A2F3AFFEF003009D0 /* popup.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = popup.html; path = ../../../dist/popup.html; sourceTree = "<group>"; };
-		E8131C9B2F3AFFEF003009D0 /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = ../../../dist/manifest.json; sourceTree = "<group>"; };
-		E8131C9C2F3AFFEF003009D0 /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = ../../../dist/content.js; sourceTree = "<group>"; };
-		E8131C9D2F3AFFEF003009D0 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../../../dist/assets; sourceTree = "<group>"; };
+		E8626B892F9F0C7F00CB5B8B /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
+		E8626B8A2F9F0C7F00CB5B8B /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		E8626B8B2F9F0C7F00CB5B8B /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
+		E8626B8C2F9F0C7F00CB5B8B /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
+		E8626B8D2F9F0C7F00CB5B8B /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		E8626B8E2F9F0C8000CB5B8B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E8626B902F9F0C8000CB5B8B /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		E8626B952F9F0C8000CB5B8B /* AxureScaleScreen.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AxureScaleScreen.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E8626B982F9F0C8000CB5B8B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		E8626B9A2F9F0C8000CB5B8B /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		E8626B9D2F9F0C8000CB5B8B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		E8626BA02F9F0C8000CB5B8B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		E8626BA22F9F0C8000CB5B8B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E8626BA72F9F0C8000CB5B8B /* AxureScaleScreen.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AxureScaleScreen.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E8626BA92F9F0C8000CB5B8B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		E8626BAC2F9F0C8000CB5B8B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		E8626BAE2F9F0C8000CB5B8B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E8626BB32F9F0C8000CB5B8B /* AxureScaleScreen Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "AxureScaleScreen Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E8626BB82F9F0C8000CB5B8B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E8626BBD2F9F0C8000CB5B8B /* AxureScaleScreen Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "AxureScaleScreen Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E8626BC22F9F0C8000CB5B8B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E8626BE22F9F0C8000CB5B8B /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = ../../../dist/background.js; sourceTree = "<group>"; };
+		E8626BE32F9F0C8000CB5B8B /* popup.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = popup.html; path = ../../../dist/popup.html; sourceTree = "<group>"; };
+		E8626BE42F9F0C8000CB5B8B /* icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = icons; path = ../../../dist/icons; sourceTree = "<group>"; };
+		E8626BE52F9F0C8000CB5B8B /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = ../../../dist/manifest.json; sourceTree = "<group>"; };
+		E8626BE62F9F0C8000CB5B8B /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = ../../../dist/content.js; sourceTree = "<group>"; };
+		E8626BE72F9F0C8000CB5B8B /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../../../dist/assets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		E8131C492F3AFFEE003009D0 /* Frameworks */ = {
+		E8626B922F9F0C8000CB5B8B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E8131C5B2F3AFFEF003009D0 /* Frameworks */ = {
+		E8626BA42F9F0C8000CB5B8B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E8131C672F3AFFEF003009D0 /* Frameworks */ = {
+		E8626BB02F9F0C8000CB5B8B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E8131C712F3AFFEF003009D0 /* Frameworks */ = {
+		E8626BBA2F9F0C8000CB5B8B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -144,106 +147,107 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		E8131C382F3AFFED003009D0 = {
+		E8626B812F9F0C7E00CB5B8B = {
 			isa = PBXGroup;
 			children = (
-				E8131C3D2F3AFFED003009D0 /* Shared (App) */,
-				E8131C462F3AFFEE003009D0 /* Shared (Extension) */,
-				E8131C4E2F3AFFEF003009D0 /* iOS (App) */,
-				E8131C5F2F3AFFEF003009D0 /* macOS (App) */,
-				E8131C6E2F3AFFEF003009D0 /* iOS (Extension) */,
-				E8131C782F3AFFEF003009D0 /* macOS (Extension) */,
-				E8131C4D2F3AFFEF003009D0 /* Products */,
+				E8626B862F9F0C7F00CB5B8B /* Shared (App) */,
+				E8626B8F2F9F0C8000CB5B8B /* Shared (Extension) */,
+				E8626B972F9F0C8000CB5B8B /* iOS (App) */,
+				E8626BA82F9F0C8000CB5B8B /* macOS (App) */,
+				E8626BB72F9F0C8000CB5B8B /* iOS (Extension) */,
+				E8626BC12F9F0C8000CB5B8B /* macOS (Extension) */,
+				E8626B962F9F0C8000CB5B8B /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		E8131C3D2F3AFFED003009D0 /* Shared (App) */ = {
+		E8626B862F9F0C7F00CB5B8B /* Shared (App) */ = {
 			isa = PBXGroup;
 			children = (
-				E8131C442F3AFFED003009D0 /* ViewController.swift */,
-				E8131C452F3AFFEE003009D0 /* Assets.xcassets */,
-				E8131C3E2F3AFFED003009D0 /* Resources */,
+				E8626B8D2F9F0C7F00CB5B8B /* ViewController.swift */,
+				E8626B8E2F9F0C8000CB5B8B /* Assets.xcassets */,
+				E8626B872F9F0C7F00CB5B8B /* Resources */,
 			);
 			path = "Shared (App)";
 			sourceTree = "<group>";
 		};
-		E8131C3E2F3AFFED003009D0 /* Resources */ = {
+		E8626B872F9F0C7F00CB5B8B /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				E8131C3F2F3AFFED003009D0 /* Main.html */,
-				E8131C412F3AFFED003009D0 /* Icon.png */,
-				E8131C422F3AFFED003009D0 /* Style.css */,
-				E8131C432F3AFFED003009D0 /* Script.js */,
+				E8626B882F9F0C7F00CB5B8B /* Main.html */,
+				E8626B8A2F9F0C7F00CB5B8B /* Icon.png */,
+				E8626B8B2F9F0C7F00CB5B8B /* Style.css */,
+				E8626B8C2F9F0C7F00CB5B8B /* Script.js */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
 		};
-		E8131C462F3AFFEE003009D0 /* Shared (Extension) */ = {
+		E8626B8F2F9F0C8000CB5B8B /* Shared (Extension) */ = {
 			isa = PBXGroup;
 			children = (
-				E8131C982F3AFFEF003009D0 /* Resources */,
-				E8131C472F3AFFEE003009D0 /* SafariWebExtensionHandler.swift */,
+				E8626BE12F9F0C8000CB5B8B /* Resources */,
+				E8626B902F9F0C8000CB5B8B /* SafariWebExtensionHandler.swift */,
 			);
 			path = "Shared (Extension)";
 			sourceTree = "<group>";
 		};
-		E8131C4D2F3AFFEF003009D0 /* Products */ = {
+		E8626B962F9F0C8000CB5B8B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E8131C4C2F3AFFEF003009D0 /* AxureScaleScreen.app */,
-				E8131C5E2F3AFFEF003009D0 /* AxureScaleScreen.app */,
-				E8131C6A2F3AFFEF003009D0 /* AxureScaleScreen Extension.appex */,
-				E8131C742F3AFFEF003009D0 /* AxureScaleScreen Extension.appex */,
+				E8626B952F9F0C8000CB5B8B /* AxureScaleScreen.app */,
+				E8626BA72F9F0C8000CB5B8B /* AxureScaleScreen.app */,
+				E8626BB32F9F0C8000CB5B8B /* AxureScaleScreen Extension.appex */,
+				E8626BBD2F9F0C8000CB5B8B /* AxureScaleScreen Extension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		E8131C4E2F3AFFEF003009D0 /* iOS (App) */ = {
+		E8626B972F9F0C8000CB5B8B /* iOS (App) */ = {
 			isa = PBXGroup;
 			children = (
-				E8131C4F2F3AFFEF003009D0 /* AppDelegate.swift */,
-				E8131C512F3AFFEF003009D0 /* SceneDelegate.swift */,
-				E8131C532F3AFFEF003009D0 /* LaunchScreen.storyboard */,
-				E8131C562F3AFFEF003009D0 /* Main.storyboard */,
-				E8131C592F3AFFEF003009D0 /* Info.plist */,
+				E8626B982F9F0C8000CB5B8B /* AppDelegate.swift */,
+				E8626B9A2F9F0C8000CB5B8B /* SceneDelegate.swift */,
+				E8626B9C2F9F0C8000CB5B8B /* LaunchScreen.storyboard */,
+				E8626B9F2F9F0C8000CB5B8B /* Main.storyboard */,
+				E8626BA22F9F0C8000CB5B8B /* Info.plist */,
 			);
 			path = "iOS (App)";
 			sourceTree = "<group>";
 		};
-		E8131C5F2F3AFFEF003009D0 /* macOS (App) */ = {
+		E8626BA82F9F0C8000CB5B8B /* macOS (App) */ = {
 			isa = PBXGroup;
 			children = (
-				E8131C602F3AFFEF003009D0 /* AppDelegate.swift */,
-				E8131C622F3AFFEF003009D0 /* Main.storyboard */,
-				E8131C652F3AFFEF003009D0 /* Info.plist */,
+				E8626BA92F9F0C8000CB5B8B /* AppDelegate.swift */,
+				E8626BAB2F9F0C8000CB5B8B /* Main.storyboard */,
+				E8626BAE2F9F0C8000CB5B8B /* Info.plist */,
 			);
 			path = "macOS (App)";
 			sourceTree = "<group>";
 		};
-		E8131C6E2F3AFFEF003009D0 /* iOS (Extension) */ = {
+		E8626BB72F9F0C8000CB5B8B /* iOS (Extension) */ = {
 			isa = PBXGroup;
 			children = (
-				E8131C6F2F3AFFEF003009D0 /* Info.plist */,
+				E8626BB82F9F0C8000CB5B8B /* Info.plist */,
 			);
 			path = "iOS (Extension)";
 			sourceTree = "<group>";
 		};
-		E8131C782F3AFFEF003009D0 /* macOS (Extension) */ = {
+		E8626BC12F9F0C8000CB5B8B /* macOS (Extension) */ = {
 			isa = PBXGroup;
 			children = (
-				E8131C792F3AFFEF003009D0 /* Info.plist */,
+				E8626BC22F9F0C8000CB5B8B /* Info.plist */,
 			);
 			path = "macOS (Extension)";
 			sourceTree = "<group>";
 		};
-		E8131C982F3AFFEF003009D0 /* Resources */ = {
+		E8626BE12F9F0C8000CB5B8B /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				E8131C992F3AFFEF003009D0 /* background.js */,
-				E8131C9A2F3AFFEF003009D0 /* popup.html */,
-				E8131C9B2F3AFFEF003009D0 /* manifest.json */,
-				E8131C9C2F3AFFEF003009D0 /* content.js */,
-				E8131C9D2F3AFFEF003009D0 /* assets */,
+				E8626BE22F9F0C8000CB5B8B /* background.js */,
+				E8626BE32F9F0C8000CB5B8B /* popup.html */,
+				E8626BE42F9F0C8000CB5B8B /* icons */,
+				E8626BE52F9F0C8000CB5B8B /* manifest.json */,
+				E8626BE62F9F0C8000CB5B8B /* content.js */,
+				E8626BE72F9F0C8000CB5B8B /* assets */,
 			);
 			name = Resources;
 			path = "Shared (Extension)";
@@ -252,55 +256,55 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		E8131C4B2F3AFFEE003009D0 /* AxureScaleScreen (iOS) */ = {
+		E8626B942F9F0C8000CB5B8B /* AxureScaleScreen (iOS) */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E8131C8E2F3AFFEF003009D0 /* Build configuration list for PBXNativeTarget "AxureScaleScreen (iOS)" */;
+			buildConfigurationList = E8626BD72F9F0C8000CB5B8B /* Build configuration list for PBXNativeTarget "AxureScaleScreen (iOS)" */;
 			buildPhases = (
-				E8131C482F3AFFEE003009D0 /* Sources */,
-				E8131C492F3AFFEE003009D0 /* Frameworks */,
-				E8131C4A2F3AFFEE003009D0 /* Resources */,
-				E8131C8D2F3AFFEF003009D0 /* Embed Foundation Extensions */,
+				E8626B912F9F0C8000CB5B8B /* Sources */,
+				E8626B922F9F0C8000CB5B8B /* Frameworks */,
+				E8626B932F9F0C8000CB5B8B /* Resources */,
+				E8626BD62F9F0C8000CB5B8B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				E8131C6D2F3AFFEF003009D0 /* PBXTargetDependency */,
+				E8626BB62F9F0C8000CB5B8B /* PBXTargetDependency */,
 			);
 			name = "AxureScaleScreen (iOS)";
 			packageProductDependencies = (
 			);
 			productName = "AxureScaleScreen (iOS)";
-			productReference = E8131C4C2F3AFFEF003009D0 /* AxureScaleScreen.app */;
+			productReference = E8626B952F9F0C8000CB5B8B /* AxureScaleScreen.app */;
 			productType = "com.apple.product-type.application";
 		};
-		E8131C5D2F3AFFEF003009D0 /* AxureScaleScreen (macOS) */ = {
+		E8626BA62F9F0C8000CB5B8B /* AxureScaleScreen (macOS) */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E8131C952F3AFFEF003009D0 /* Build configuration list for PBXNativeTarget "AxureScaleScreen (macOS)" */;
+			buildConfigurationList = E8626BDE2F9F0C8000CB5B8B /* Build configuration list for PBXNativeTarget "AxureScaleScreen (macOS)" */;
 			buildPhases = (
-				E8131C5A2F3AFFEF003009D0 /* Sources */,
-				E8131C5B2F3AFFEF003009D0 /* Frameworks */,
-				E8131C5C2F3AFFEF003009D0 /* Resources */,
-				E8131C942F3AFFEF003009D0 /* Embed Foundation Extensions */,
+				E8626BA32F9F0C8000CB5B8B /* Sources */,
+				E8626BA42F9F0C8000CB5B8B /* Frameworks */,
+				E8626BA52F9F0C8000CB5B8B /* Resources */,
+				E8626BDD2F9F0C8000CB5B8B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				E8131C772F3AFFEF003009D0 /* PBXTargetDependency */,
+				E8626BC02F9F0C8000CB5B8B /* PBXTargetDependency */,
 			);
 			name = "AxureScaleScreen (macOS)";
 			packageProductDependencies = (
 			);
 			productName = "AxureScaleScreen (macOS)";
-			productReference = E8131C5E2F3AFFEF003009D0 /* AxureScaleScreen.app */;
+			productReference = E8626BA72F9F0C8000CB5B8B /* AxureScaleScreen.app */;
 			productType = "com.apple.product-type.application";
 		};
-		E8131C692F3AFFEF003009D0 /* AxureScaleScreen Extension (iOS) */ = {
+		E8626BB22F9F0C8000CB5B8B /* AxureScaleScreen Extension (iOS) */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E8131C8A2F3AFFEF003009D0 /* Build configuration list for PBXNativeTarget "AxureScaleScreen Extension (iOS)" */;
+			buildConfigurationList = E8626BD32F9F0C8000CB5B8B /* Build configuration list for PBXNativeTarget "AxureScaleScreen Extension (iOS)" */;
 			buildPhases = (
-				E8131C662F3AFFEF003009D0 /* Sources */,
-				E8131C672F3AFFEF003009D0 /* Frameworks */,
-				E8131C682F3AFFEF003009D0 /* Resources */,
+				E8626BAF2F9F0C8000CB5B8B /* Sources */,
+				E8626BB02F9F0C8000CB5B8B /* Frameworks */,
+				E8626BB12F9F0C8000CB5B8B /* Resources */,
 			);
 			buildRules = (
 			);
@@ -310,16 +314,16 @@
 			packageProductDependencies = (
 			);
 			productName = "AxureScaleScreen Extension (iOS)";
-			productReference = E8131C6A2F3AFFEF003009D0 /* AxureScaleScreen Extension.appex */;
+			productReference = E8626BB32F9F0C8000CB5B8B /* AxureScaleScreen Extension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		E8131C732F3AFFEF003009D0 /* AxureScaleScreen Extension (macOS) */ = {
+		E8626BBC2F9F0C8000CB5B8B /* AxureScaleScreen Extension (macOS) */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E8131C912F3AFFEF003009D0 /* Build configuration list for PBXNativeTarget "AxureScaleScreen Extension (macOS)" */;
+			buildConfigurationList = E8626BDA2F9F0C8000CB5B8B /* Build configuration list for PBXNativeTarget "AxureScaleScreen Extension (macOS)" */;
 			buildPhases = (
-				E8131C702F3AFFEF003009D0 /* Sources */,
-				E8131C712F3AFFEF003009D0 /* Frameworks */,
-				E8131C722F3AFFEF003009D0 /* Resources */,
+				E8626BB92F9F0C8000CB5B8B /* Sources */,
+				E8626BBA2F9F0C8000CB5B8B /* Frameworks */,
+				E8626BBB2F9F0C8000CB5B8B /* Resources */,
 			);
 			buildRules = (
 			);
@@ -329,189 +333,191 @@
 			packageProductDependencies = (
 			);
 			productName = "AxureScaleScreen Extension (macOS)";
-			productReference = E8131C742F3AFFEF003009D0 /* AxureScaleScreen Extension.appex */;
+			productReference = E8626BBD2F9F0C8000CB5B8B /* AxureScaleScreen Extension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		E8131C392F3AFFED003009D0 /* Project object */ = {
+		E8626B822F9F0C7E00CB5B8B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 2620;
+				LastSwiftUpdateCheck = 2640;
+				LastUpgradeCheck = 2640;
 				TargetAttributes = {
-					E8131C4B2F3AFFEE003009D0 = {
-						CreatedOnToolsVersion = 26.2;
+					E8626B942F9F0C8000CB5B8B = {
+						CreatedOnToolsVersion = 26.4.1;
 					};
-					E8131C5D2F3AFFEF003009D0 = {
-						CreatedOnToolsVersion = 26.2;
+					E8626BA62F9F0C8000CB5B8B = {
+						CreatedOnToolsVersion = 26.4.1;
 					};
-					E8131C692F3AFFEF003009D0 = {
-						CreatedOnToolsVersion = 26.2;
+					E8626BB22F9F0C8000CB5B8B = {
+						CreatedOnToolsVersion = 26.4.1;
 					};
-					E8131C732F3AFFEF003009D0 = {
-						CreatedOnToolsVersion = 26.2;
+					E8626BBC2F9F0C8000CB5B8B = {
+						CreatedOnToolsVersion = 26.4.1;
 					};
 				};
 			};
-			buildConfigurationList = E8131C3C2F3AFFED003009D0 /* Build configuration list for PBXProject "AxureScaleScreen" */;
+			buildConfigurationList = E8626B852F9F0C7E00CB5B8B /* Build configuration list for PBXProject "AxureScaleScreen" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = E8131C382F3AFFED003009D0;
+			mainGroup = E8626B812F9F0C7E00CB5B8B;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = E8131C4D2F3AFFEF003009D0 /* Products */;
+			productRefGroup = E8626B962F9F0C8000CB5B8B /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E8131C4B2F3AFFEE003009D0 /* AxureScaleScreen (iOS) */,
-				E8131C5D2F3AFFEF003009D0 /* AxureScaleScreen (macOS) */,
-				E8131C692F3AFFEF003009D0 /* AxureScaleScreen Extension (iOS) */,
-				E8131C732F3AFFEF003009D0 /* AxureScaleScreen Extension (macOS) */,
+				E8626B942F9F0C8000CB5B8B /* AxureScaleScreen (iOS) */,
+				E8626BA62F9F0C8000CB5B8B /* AxureScaleScreen (macOS) */,
+				E8626BB22F9F0C8000CB5B8B /* AxureScaleScreen Extension (iOS) */,
+				E8626BBC2F9F0C8000CB5B8B /* AxureScaleScreen Extension (macOS) */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		E8131C4A2F3AFFEE003009D0 /* Resources */ = {
+		E8626B932F9F0C8000CB5B8B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E8131C7C2F3AFFEF003009D0 /* Icon.png in Resources */,
-				E8131C552F3AFFEF003009D0 /* LaunchScreen.storyboard in Resources */,
-				E8131C7A2F3AFFEF003009D0 /* Main.html in Resources */,
-				E8131C802F3AFFEF003009D0 /* Script.js in Resources */,
-				E8131C842F3AFFEF003009D0 /* Assets.xcassets in Resources */,
-				E8131C582F3AFFEF003009D0 /* Main.storyboard in Resources */,
-				E8131C7E2F3AFFEF003009D0 /* Style.css in Resources */,
+				E8626BC52F9F0C8000CB5B8B /* Icon.png in Resources */,
+				E8626B9E2F9F0C8000CB5B8B /* LaunchScreen.storyboard in Resources */,
+				E8626BC32F9F0C8000CB5B8B /* Main.html in Resources */,
+				E8626BC92F9F0C8000CB5B8B /* Script.js in Resources */,
+				E8626BCD2F9F0C8000CB5B8B /* Assets.xcassets in Resources */,
+				E8626BA12F9F0C8000CB5B8B /* Main.storyboard in Resources */,
+				E8626BC72F9F0C8000CB5B8B /* Style.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E8131C5C2F3AFFEF003009D0 /* Resources */ = {
+		E8626BA52F9F0C8000CB5B8B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E8131C7D2F3AFFEF003009D0 /* Icon.png in Resources */,
-				E8131C7F2F3AFFEF003009D0 /* Style.css in Resources */,
-				E8131C642F3AFFEF003009D0 /* Main.storyboard in Resources */,
-				E8131C812F3AFFEF003009D0 /* Script.js in Resources */,
-				E8131C852F3AFFEF003009D0 /* Assets.xcassets in Resources */,
-				E8131C7B2F3AFFEF003009D0 /* Main.html in Resources */,
+				E8626BC62F9F0C8000CB5B8B /* Icon.png in Resources */,
+				E8626BC82F9F0C8000CB5B8B /* Style.css in Resources */,
+				E8626BAD2F9F0C8000CB5B8B /* Main.storyboard in Resources */,
+				E8626BCA2F9F0C8000CB5B8B /* Script.js in Resources */,
+				E8626BCE2F9F0C8000CB5B8B /* Assets.xcassets in Resources */,
+				E8626BC42F9F0C8000CB5B8B /* Main.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E8131C682F3AFFEF003009D0 /* Resources */ = {
+		E8626BB12F9F0C8000CB5B8B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E8131CA72F3AFFEF003009D0 /* assets in Resources */,
-				E8131CA62F3AFFEF003009D0 /* content.js in Resources */,
-				E8131CA32F3AFFEF003009D0 /* background.js in Resources */,
-				E8131CA52F3AFFEF003009D0 /* manifest.json in Resources */,
-				E8131CA42F3AFFEF003009D0 /* popup.html in Resources */,
+				E8626BF12F9F0C8000CB5B8B /* manifest.json in Resources */,
+				E8626BF02F9F0C8000CB5B8B /* icons in Resources */,
+				E8626BEE2F9F0C8000CB5B8B /* background.js in Resources */,
+				E8626BF32F9F0C8000CB5B8B /* assets in Resources */,
+				E8626BEF2F9F0C8000CB5B8B /* popup.html in Resources */,
+				E8626BF22F9F0C8000CB5B8B /* content.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E8131C722F3AFFEF003009D0 /* Resources */ = {
+		E8626BBB2F9F0C8000CB5B8B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E8131CA22F3AFFEF003009D0 /* assets in Resources */,
-				E8131CA12F3AFFEF003009D0 /* content.js in Resources */,
-				E8131C9E2F3AFFEF003009D0 /* background.js in Resources */,
-				E8131CA02F3AFFEF003009D0 /* manifest.json in Resources */,
-				E8131C9F2F3AFFEF003009D0 /* popup.html in Resources */,
+				E8626BEB2F9F0C8000CB5B8B /* manifest.json in Resources */,
+				E8626BEA2F9F0C8000CB5B8B /* icons in Resources */,
+				E8626BE82F9F0C8000CB5B8B /* background.js in Resources */,
+				E8626BED2F9F0C8000CB5B8B /* assets in Resources */,
+				E8626BE92F9F0C8000CB5B8B /* popup.html in Resources */,
+				E8626BEC2F9F0C8000CB5B8B /* content.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		E8131C482F3AFFEE003009D0 /* Sources */ = {
+		E8626B912F9F0C8000CB5B8B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E8131C822F3AFFEF003009D0 /* ViewController.swift in Sources */,
-				E8131C502F3AFFEF003009D0 /* AppDelegate.swift in Sources */,
-				E8131C522F3AFFEF003009D0 /* SceneDelegate.swift in Sources */,
+				E8626BCB2F9F0C8000CB5B8B /* ViewController.swift in Sources */,
+				E8626B992F9F0C8000CB5B8B /* AppDelegate.swift in Sources */,
+				E8626B9B2F9F0C8000CB5B8B /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E8131C5A2F3AFFEF003009D0 /* Sources */ = {
+		E8626BA32F9F0C8000CB5B8B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E8131C832F3AFFEF003009D0 /* ViewController.swift in Sources */,
-				E8131C612F3AFFEF003009D0 /* AppDelegate.swift in Sources */,
+				E8626BCC2F9F0C8000CB5B8B /* ViewController.swift in Sources */,
+				E8626BAA2F9F0C8000CB5B8B /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E8131C662F3AFFEF003009D0 /* Sources */ = {
+		E8626BAF2F9F0C8000CB5B8B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E8131C862F3AFFEF003009D0 /* SafariWebExtensionHandler.swift in Sources */,
+				E8626BCF2F9F0C8000CB5B8B /* SafariWebExtensionHandler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E8131C702F3AFFEF003009D0 /* Sources */ = {
+		E8626BB92F9F0C8000CB5B8B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E8131C872F3AFFEF003009D0 /* SafariWebExtensionHandler.swift in Sources */,
+				E8626BD02F9F0C8000CB5B8B /* SafariWebExtensionHandler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		E8131C6D2F3AFFEF003009D0 /* PBXTargetDependency */ = {
+		E8626BB62F9F0C8000CB5B8B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = E8131C692F3AFFEF003009D0 /* AxureScaleScreen Extension (iOS) */;
-			targetProxy = E8131C6C2F3AFFEF003009D0 /* PBXContainerItemProxy */;
+			target = E8626BB22F9F0C8000CB5B8B /* AxureScaleScreen Extension (iOS) */;
+			targetProxy = E8626BB52F9F0C8000CB5B8B /* PBXContainerItemProxy */;
 		};
-		E8131C772F3AFFEF003009D0 /* PBXTargetDependency */ = {
+		E8626BC02F9F0C8000CB5B8B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = E8131C732F3AFFEF003009D0 /* AxureScaleScreen Extension (macOS) */;
-			targetProxy = E8131C762F3AFFEF003009D0 /* PBXContainerItemProxy */;
+			target = E8626BBC2F9F0C8000CB5B8B /* AxureScaleScreen Extension (macOS) */;
+			targetProxy = E8626BBF2F9F0C8000CB5B8B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		E8131C3F2F3AFFED003009D0 /* Main.html */ = {
+		E8626B882F9F0C7F00CB5B8B /* Main.html */ = {
 			isa = PBXVariantGroup;
 			children = (
-				E8131C402F3AFFED003009D0 /* Base */,
+				E8626B892F9F0C7F00CB5B8B /* Base */,
 			);
 			name = Main.html;
 			sourceTree = "<group>";
 		};
-		E8131C532F3AFFEF003009D0 /* LaunchScreen.storyboard */ = {
+		E8626B9C2F9F0C8000CB5B8B /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				E8131C542F3AFFEF003009D0 /* Base */,
+				E8626B9D2F9F0C8000CB5B8B /* Base */,
 			);
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
 		};
-		E8131C562F3AFFEF003009D0 /* Main.storyboard */ = {
+		E8626B9F2F9F0C8000CB5B8B /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				E8131C572F3AFFEF003009D0 /* Base */,
+				E8626BA02F9F0C8000CB5B8B /* Base */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
 		};
-		E8131C622F3AFFEF003009D0 /* Main.storyboard */ = {
+		E8626BAB2F9F0C8000CB5B8B /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				E8131C632F3AFFEF003009D0 /* Base */,
+				E8626BAC2F9F0C8000CB5B8B /* Base */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -519,7 +525,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		E8131C882F3AFFEF003009D0 /* Debug */ = {
+		E8626BD12F9F0C8000CB5B8B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -580,7 +586,7 @@
 			};
 			name = Debug;
 		};
-		E8131C892F3AFFEF003009D0 /* Release */ = {
+		E8626BD22F9F0C8000CB5B8B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -633,7 +639,7 @@
 			};
 			name = Release;
 		};
-		E8131C8B2F3AFFEF003009D0 /* Debug */ = {
+		E8626BD42F9F0C8000CB5B8B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -654,7 +660,7 @@
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.jasonchen.developer.axurescalescreen.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.axurescalescreen.Extension;
 				PRODUCT_NAME = "AxureScaleScreen Extension";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -667,7 +673,7 @@
 			};
 			name = Debug;
 		};
-		E8131C8C2F3AFFEF003009D0 /* Release */ = {
+		E8626BD52F9F0C8000CB5B8B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -688,7 +694,7 @@
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.jasonchen.developer.axurescalescreen.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.axurescalescreen.Extension;
 				PRODUCT_NAME = "AxureScaleScreen Extension";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -702,7 +708,7 @@
 			};
 			name = Release;
 		};
-		E8131C8F2F3AFFEF003009D0 /* Debug */ = {
+		E8626BD82F9F0C8000CB5B8B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -730,7 +736,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.jasonchen.developer.axurescalescreen;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.axurescalescreen;
 				PRODUCT_NAME = AxureScaleScreen;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -743,7 +749,7 @@
 			};
 			name = Debug;
 		};
-		E8131C902F3AFFEF003009D0 /* Release */ = {
+		E8626BD92F9F0C8000CB5B8B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -771,7 +777,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.jasonchen.developer.axurescalescreen;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.axurescalescreen;
 				PRODUCT_NAME = AxureScaleScreen;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -785,7 +791,7 @@
 			};
 			name = Release;
 		};
-		E8131C922F3AFFEF003009D0 /* Debug */ = {
+		E8626BDB2F9F0C8000CB5B8B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -809,7 +815,7 @@
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.jasonchen.developer.axurescalescreen.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.axurescalescreen.Extension;
 				PRODUCT_NAME = "AxureScaleScreen Extension";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -821,7 +827,7 @@
 			};
 			name = Debug;
 		};
-		E8131C932F3AFFEF003009D0 /* Release */ = {
+		E8626BDC2F9F0C8000CB5B8B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -845,7 +851,7 @@
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.jasonchen.developer.axurescalescreen.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.axurescalescreen.Extension;
 				PRODUCT_NAME = "AxureScaleScreen Extension";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -857,7 +863,7 @@
 			};
 			name = Release;
 		};
-		E8131C962F3AFFEF003009D0 /* Debug */ = {
+		E8626BDF2F9F0C8000CB5B8B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -886,7 +892,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.jasonchen.developer.axurescalescreen;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.axurescalescreen;
 				PRODUCT_NAME = AxureScaleScreen;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
@@ -899,7 +905,7 @@
 			};
 			name = Debug;
 		};
-		E8131C972F3AFFEF003009D0 /* Release */ = {
+		E8626BE02F9F0C8000CB5B8B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -928,7 +934,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.jasonchen.developer.axurescalescreen;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.axurescalescreen;
 				PRODUCT_NAME = AxureScaleScreen;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
@@ -944,52 +950,52 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E8131C3C2F3AFFED003009D0 /* Build configuration list for PBXProject "AxureScaleScreen" */ = {
+		E8626B852F9F0C7E00CB5B8B /* Build configuration list for PBXProject "AxureScaleScreen" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E8131C882F3AFFEF003009D0 /* Debug */,
-				E8131C892F3AFFEF003009D0 /* Release */,
+				E8626BD12F9F0C8000CB5B8B /* Debug */,
+				E8626BD22F9F0C8000CB5B8B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E8131C8A2F3AFFEF003009D0 /* Build configuration list for PBXNativeTarget "AxureScaleScreen Extension (iOS)" */ = {
+		E8626BD32F9F0C8000CB5B8B /* Build configuration list for PBXNativeTarget "AxureScaleScreen Extension (iOS)" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E8131C8B2F3AFFEF003009D0 /* Debug */,
-				E8131C8C2F3AFFEF003009D0 /* Release */,
+				E8626BD42F9F0C8000CB5B8B /* Debug */,
+				E8626BD52F9F0C8000CB5B8B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E8131C8E2F3AFFEF003009D0 /* Build configuration list for PBXNativeTarget "AxureScaleScreen (iOS)" */ = {
+		E8626BD72F9F0C8000CB5B8B /* Build configuration list for PBXNativeTarget "AxureScaleScreen (iOS)" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E8131C8F2F3AFFEF003009D0 /* Debug */,
-				E8131C902F3AFFEF003009D0 /* Release */,
+				E8626BD82F9F0C8000CB5B8B /* Debug */,
+				E8626BD92F9F0C8000CB5B8B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E8131C912F3AFFEF003009D0 /* Build configuration list for PBXNativeTarget "AxureScaleScreen Extension (macOS)" */ = {
+		E8626BDA2F9F0C8000CB5B8B /* Build configuration list for PBXNativeTarget "AxureScaleScreen Extension (macOS)" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E8131C922F3AFFEF003009D0 /* Debug */,
-				E8131C932F3AFFEF003009D0 /* Release */,
+				E8626BDB2F9F0C8000CB5B8B /* Debug */,
+				E8626BDC2F9F0C8000CB5B8B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E8131C952F3AFFEF003009D0 /* Build configuration list for PBXNativeTarget "AxureScaleScreen (macOS)" */ = {
+		E8626BDE2F9F0C8000CB5B8B /* Build configuration list for PBXNativeTarget "AxureScaleScreen (macOS)" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E8131C962F3AFFEF003009D0 /* Debug */,
-				E8131C972F3AFFEF003009D0 /* Release */,
+				E8626BDF2F9F0C8000CB5B8B /* Debug */,
+				E8626BE02F9F0C8000CB5B8B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = E8131C392F3AFFED003009D0 /* Project object */;
+	rootObject = E8626B822F9F0C7E00CB5B8B /* Project object */;
 }

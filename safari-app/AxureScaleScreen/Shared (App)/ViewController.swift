@@ -2,7 +2,7 @@
 //  ViewController.swift
 //  Shared (App)
 //
-//  Created by 00595394 on 2026/2/10.
+//  Created by 00595394 on 2026/4/27.
 //
 
 import WebKit
@@ -16,7 +16,7 @@ import SafariServices
 typealias PlatformViewController = NSViewController
 #endif
 
-let extensionBundleIdentifier = "com.jasonchen.developer.axurescalescreen.Extension"
+let extensionBundleIdentifier = "com.example.axurescalescreen.Extension"
 
 class ViewController: PlatformViewController, WKNavigationDelegate, WKScriptMessageHandler {
 
