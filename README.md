@@ -1,6 +1,6 @@
 # Axure Scale Screen（Safari Web Extension）
 
-這是一個針對 Safari 的 Axure 縮放外掛，提供滑桿、快捷鍵與一鍵重置，讓瀏覽原型文件更容易。
+這是一個針對 Safari 的 Axure 縮放外掛，提供滑桿、快捷鍵與一鍵重置，讓瀏覽原型文件更容易。程式碼採用標準 Manifest V3 與 `chrome.*` API，因此也可以直接在 Chrome 上使用（見下方〈在 Chrome 執行〉）。
 
 ## 功能
 - 縮放範圍：`50%` 到 `200%`（`10%` 步進）
@@ -37,6 +37,20 @@ npm run build
 5. 執行一次 App，然後到 Safari 設定中啟用外掛。
 6. 若要在本機 `file://` Axure 匯出檔使用，請在 Safari 的外掛網站權限中允許本機檔案存取。
 7. 打開 Axure 頁面後，點選外掛圖示開始調整縮放。
+
+## 在 Chrome 執行
+1. 先建置 extension：
+   ```bash
+   npm run build
+   ```
+2. 打開 `chrome://extensions`，開啟右上角「開發人員模式」。
+3. 點「載入未封裝項目」，選擇 `dist/` 資料夾。
+4. 若要在本機 `file://` Axure 匯出檔使用，請到該擴充功能的「詳細資料」頁面，開啟「允許存取檔案網址」。
+5. 打開 Axure 頁面後，點選外掛圖示開始調整縮放。
+
+注意事項：
+- `Cmd/Ctrl +`、`Cmd/Ctrl -`、`Cmd/Ctrl 0` 與備援快捷鍵由 content script 處理，安裝後即可使用；但 `Cmd/Ctrl +/-` 可能與 Chrome 內建的頁面縮放衝突，衝突時請改用 `Option + Shift + ↑/↓/0`。
+- 若想透過 Chrome 的指令系統觸發 `zoom-in / zoom-out / zoom-reset`，請到 `chrome://extensions/shortcuts` 手動指派快捷鍵（manifest 未提供預設鍵）。
 
 ## 使用方式
 - 滑桿：拖曳到目標倍率。
