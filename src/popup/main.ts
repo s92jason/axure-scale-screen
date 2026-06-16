@@ -1,5 +1,13 @@
 import { DEFAULT_ZOOM, MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from '../shared/constants';
-import type { ContentMessage, ContentResponse, ZoomLevel } from '../shared/types';
+import { toProjectKey } from '../shared/projectKey';
+import type {
+  AxureBookmark,
+  ContentMessage,
+  ContentResponse,
+  RuntimeMessage,
+  RuntimeResponse,
+  ZoomLevel
+} from '../shared/types';
 import { adjustZoom, toZoomLevel } from '../shared/zoom';
 
 const statusEl = document.querySelector<HTMLParagraphElement>('#status');
@@ -22,10 +30,29 @@ const zoomIn = zoomInEl;
 const zoomOut = zoomOutEl;
 const reset = resetEl;
 
+const bmAddEl = document.querySelector<HTMLButtonElement>('#bmAdd');
+const bmSearchEl = document.querySelector<HTMLInputElement>('#bmSearch');
+const bmListEl = document.querySelector<HTMLUListElement>('#bmList');
+const bmEmptyEl = document.querySelector<HTMLParagraphElement>('#bmEmpty');
+
+if (!bmAddEl || !bmSearchEl || !bmListEl || !bmEmptyEl) {
+  throw new Error('找不到 Popup 書籤區的 UI 元件');
+}
+
+const bmAdd = bmAddEl;
+const bmSearch = bmSearchEl;
+const bmList = bmListEl;
+const bmEmpty = bmEmptyEl;
+
 let tabId: number | null = null;
 let activeFrameId: number | null = null;
 let isAxurePage = false;
 let currentZoom = DEFAULT_ZOOM as ZoomLevel;
+
+let currentTabUrl: string | null = null;
+let currentTabTitle = '';
+let currentProjectKey: string | null = null;
+let bookmarks: AxureBookmark[] = [];
 
 function shortenText(input: string, maxLength: number): string {
   if (input.length <= maxLength) {
@@ -66,14 +93,6 @@ function updateZoomDisplay(zoom: ZoomLevel): void {
   value.value = String(zoom);
   const pct = ((zoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100;
   range.style.setProperty('--zoom-pct', `${pct}%`);
-}
-
-function queryActiveTabId(): Promise<number | null> {
-  return new Promise((resolve) => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      resolve(tabs[0]?.id ?? null);
-    });
-  });
 }
 
 function sendToContent(message: ContentMessage, frameId?: number): Promise<ContentResponse> {
@@ -293,6 +312,118 @@ async function applyZoomFromInput(rawZoom: number): Promise<void> {
   updateSavedStateText(response.data.urlKey);
 }
 
+function queryActiveTab(): Promise<chrome.tabs.Tab | null> {
+  return new Promise((resolve) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      resolve(tabs[0] ?? null);
+    });
+  });
+}
+
+function sendToBackground(message: RuntimeMessage): Promise<RuntimeResponse> {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage(message, (response: RuntimeResponse | undefined) => {
+      if (chrome.runtime.lastError || !response) {
+        resolve({ ok: false, error: chrome.runtime.lastError?.message ?? '背景沒有回應' });
+        return;
+      }
+
+      resolve(response);
+    });
+  });
+}
+
+function updateAddAvailability(): void {
+  bmAdd.disabled = currentProjectKey === null;
+  bmAdd.title = currentProjectKey === null ? '目前分頁不是可收藏的 Axure 連結' : '收藏目前的 Axure 專案';
+}
+
+function renderBookmarks(): void {
+  const keyword = bmSearch.value.trim().toLowerCase();
+  const filtered = keyword
+    ? bookmarks.filter(
+        (bm) => bm.name.toLowerCase().includes(keyword) || bm.folder.toLowerCase().includes(keyword)
+      )
+    : bookmarks;
+
+  bmSearch.hidden = bookmarks.length <= 4;
+  bmEmpty.hidden = bookmarks.length > 0;
+  bmList.replaceChildren();
+
+  for (const bm of filtered) {
+    const row = document.createElement('li');
+    row.className = 'bm-row';
+
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'bm-open';
+    open.title = bm.url;
+
+    const name = document.createElement('span');
+    name.className = 'bm-name';
+    name.textContent = bm.name || bm.projectKey;
+    open.appendChild(name);
+
+    if (bm.folder) {
+      const pill = document.createElement('span');
+      pill.className = 'bm-folder';
+      pill.textContent = bm.folder;
+      open.appendChild(pill);
+    }
+
+    open.addEventListener('click', () => {
+      void openBookmark(bm);
+    });
+
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'bm-del';
+    del.title = '刪除書籤';
+    del.textContent = '×';
+    del.addEventListener('click', () => {
+      void removeBookmarkRow(bm.projectKey);
+    });
+
+    row.append(open, del);
+    bmList.appendChild(row);
+  }
+}
+
+async function loadBookmarks(): Promise<void> {
+  const response = await sendToBackground({ type: 'BOOKMARK_GET_ALL' });
+  bookmarks = response.ok && response.bookmarks ? response.bookmarks : [];
+  renderBookmarks();
+}
+
+async function openBookmark(bm: AxureBookmark): Promise<void> {
+  chrome.tabs.create({ url: bm.url });
+  await sendToBackground({ type: 'BOOKMARK_RECORD_VISIT', projectKey: bm.projectKey });
+  window.close();
+}
+
+async function removeBookmarkRow(projectKey: string): Promise<void> {
+  await sendToBackground({ type: 'BOOKMARK_REMOVE', projectKey });
+  await loadBookmarks();
+}
+
+async function addCurrentTab(): Promise<void> {
+  if (!currentTabUrl || !currentProjectKey) {
+    return;
+  }
+
+  const name = currentTabTitle.trim() || currentProjectKey;
+  const response = await sendToBackground({
+    type: 'BOOKMARK_ADD',
+    projectKey: currentProjectKey,
+    name,
+    url: currentTabUrl
+  });
+
+  if (response.ok) {
+    await loadBookmarks();
+  }
+}
+
 function bindEvents(): void {
   range.min = String(MIN_ZOOM);
   range.max = String(MAX_ZOOM);
@@ -333,12 +464,28 @@ function bindEvents(): void {
       updateSavedStateText(response.data.urlKey);
     });
   });
+
+  bmAdd.addEventListener('click', () => {
+    void addCurrentTab();
+  });
+
+  bmSearch.addEventListener('input', () => {
+    renderBookmarks();
+  });
 }
 
 async function bootstrap(): Promise<void> {
   setControlsDisabled(true);
   bindEvents();
-  tabId = await queryActiveTabId();
+
+  const tab = await queryActiveTab();
+  tabId = tab?.id ?? null;
+  currentTabUrl = tab?.url ?? null;
+  currentTabTitle = tab?.title ?? '';
+  currentProjectKey = currentTabUrl ? toProjectKey(currentTabUrl) : null;
+  updateAddAvailability();
+
+  void loadBookmarks();
 
   if (tabId === null) {
     status.textContent = '找不到目前啟用分頁。';

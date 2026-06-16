@@ -1,3 +1,9 @@
+import {
+  addBookmark,
+  getAllBookmarks,
+  recordVisit,
+  removeBookmark
+} from '../shared/bookmarkStore';
 import { getZoomState, resetZoomState, setZoomState } from '../shared/storage';
 import { isRuntimeMessage } from '../shared/types';
 
@@ -75,20 +81,47 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   void (async () => {
     try {
-      if (message.type === 'GET_ZOOM') {
-        const state = await getZoomState(message.urlKey);
-        sendResponse({ ok: true, state });
-        return;
+      switch (message.type) {
+        case 'GET_ZOOM': {
+          sendResponse({ ok: true, state: await getZoomState(message.urlKey) });
+          return;
+        }
+        case 'SET_ZOOM': {
+          sendResponse({ ok: true, state: await setZoomState(message.urlKey, message.zoom) });
+          return;
+        }
+        case 'RESET_ZOOM': {
+          sendResponse({ ok: true, state: await resetZoomState(message.urlKey) });
+          return;
+        }
+        case 'BOOKMARK_GET_ALL': {
+          sendResponse({ ok: true, bookmarks: await getAllBookmarks() });
+          return;
+        }
+        case 'BOOKMARK_ADD': {
+          const bookmark = await addBookmark({
+            projectKey: message.projectKey,
+            name: message.name,
+            url: message.url,
+            folder: message.folder
+          });
+          sendResponse({ ok: true, bookmark });
+          return;
+        }
+        case 'BOOKMARK_REMOVE': {
+          await removeBookmark(message.projectKey);
+          sendResponse({ ok: true });
+          return;
+        }
+        case 'BOOKMARK_RECORD_VISIT': {
+          await recordVisit(message.projectKey);
+          sendResponse({ ok: true });
+          return;
+        }
+        default: {
+          sendResponse({ ok: false, error: 'Unknown runtime message' });
+        }
       }
-
-      if (message.type === 'SET_ZOOM') {
-        const state = await setZoomState(message.urlKey, message.zoom);
-        sendResponse({ ok: true, state });
-        return;
-      }
-
-      const state = await resetZoomState(message.urlKey);
-      sendResponse({ ok: true, state });
     } catch (error) {
       const messageText = error instanceof Error ? error.message : 'Unexpected background error';
       sendResponse({ ok: false, error: messageText });

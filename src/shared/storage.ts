@@ -6,7 +6,7 @@ function toStorageKey(urlKey: string): string {
   return `${STORAGE_PREFIX}${urlKey}`;
 }
 
-function getStorageValue<T>(key: string): Promise<T | undefined> {
+export function getStorageValue<T>(key: string): Promise<T | undefined> {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get(key, (result) => {
       if (chrome.runtime.lastError) {
@@ -19,7 +19,7 @@ function getStorageValue<T>(key: string): Promise<T | undefined> {
   });
 }
 
-function setStorageValue(key: string, value: unknown): Promise<void> {
+export function setStorageValue(key: string, value: unknown): Promise<void> {
   return new Promise((resolve, reject) => {
     chrome.storage.local.set({ [key]: value }, () => {
       if (chrome.runtime.lastError) {
@@ -32,7 +32,7 @@ function setStorageValue(key: string, value: unknown): Promise<void> {
   });
 }
 
-function removeStorageValue(key: string): Promise<void> {
+export function removeStorageValue(key: string): Promise<void> {
   return new Promise((resolve, reject) => {
     chrome.storage.local.remove(key, () => {
       if (chrome.runtime.lastError) {
