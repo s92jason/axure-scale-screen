@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Axure Scale + Link Hub — 完整互動原型</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.30.0/dist/tabler-icons.min.css" />
+<style>
+  :root {
+    --bg: #ececea;
+    --surface: #ffffff;
+    --border: #e0dfda;
+    --border-strong: #c8c7c1;
+    --text: #1f1f1d;
+    --text-2: #6b6a64;
+    --text-3: #9b9a93;
+    --accent: #185fa5;
+    --accent-bg: #e6f1fb;
+    --success: #0f6e56;
+    --success-bg: #e1f5ee;
+    --danger: #a32d2d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .page { max-width: 1020px; margin: 0 auto; padding: 28px 20px 80px; }
+  header.site { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
+  header.site h1 { font-size: 21px; font-weight: 600; margin: 0; }
+  header.site .ver { font-size: 12.5px; color: var(--text-3); }
+  header.site .spacer { flex: 1; }
+  .lede { color: var(--text-2); font-size: 13.5px; margin: 0 0 14px; }
+  .steps { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .step { font-size: 12px; color: var(--text-2); background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 3px 12px; }
+  .step b { color: var(--text); font-weight: 600; }
+
+  .ghost-btn {
+    height: 30px; padding: 0 12px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--border-strong); background: var(--surface);
+    font-size: 12.5px; font-family: inherit; color: var(--text-2);
+  }
+  .ghost-btn:hover { background: #f6f5f2; }
+
+  /* ════ Safari window ════ */
+  .safari {
+    background: #f5f4f1;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 18px 50px rgba(20,30,70,.14), 0 4px 14px rgba(20,30,70,.07);
+    overflow: visible;
+    position: relative;
+  }
+  .chrome { background: #e8e7e3; border-radius: 14px 14px 0 0; border-bottom: 1px solid var(--border); }
+  .chrome-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px 8px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .nav-arrows { display: flex; gap: 4px; color: var(--text-3); font-size: 17px; margin-left: 4px; }
+  .urlbar {
+    flex: 1; display: flex; align-items: center; gap: 7px;
+    background: #fff; border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 12px; font-size: 12.5px; color: var(--text-2);
+    font-family: ui-monospace, Menlo, monospace;
+    white-space: nowrap; overflow: hidden;
+  }
+  .urlbar .ti { font-size: 13px; color: var(--text-3); flex-shrink: 0; }
+  .ext-slot { position: relative; flex-shrink: 0; }
+  .ext-btn {
+    width: 38px; height: 32px; border-radius: 8px; border: 1px solid transparent;
+    background: transparent; cursor: pointer; font-size: 19px; color: #3b3a36;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ext-btn:hover { background: rgba(0,0,0,.06); }
+  .ext-btn.open { background: rgba(0,0,0,.1); }
+  .ext-badge {
+    position: absolute; top: -4px; right: -4px;
+    background: #d85a30; color: #fff; font-size: 10.5px; font-weight: 700;
+    border-radius: 8px; padding: 0 5px; line-height: 15px; pointer-events: none;
+  }
+  .tabstrip { display: flex; gap: 1px; padding: 0 14px; }
+  .tab {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 14px; font-size: 12px; color: var(--text-2);
+    border-radius: 8px 8px 0 0; cursor: pointer; max-width: 220px;
+    border: 1px solid transparent; border-bottom: none; position: relative; top: 1px;
+  }
+  .tab .ti { font-size: 14px; flex-shrink: 0; }
+  .tab span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tab:hover { background: rgba(255,255,255,.5); }
+  .tab.active { background: #f5f4f1; border-color: var(--border); color: var(--text); font-weight: 500; }
+  .tab .bm-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+  .viewport { position: relative; height: 480px; overflow: hidden; border-radius: 0 0 14px 14px; background: #fff; }
+  .pageview { position: absolute; inset: 0; overflow: auto; display: none; }
+  .pageview.active { display: block; }
+
+  /* ── Axure wireframe pages ── */
+  .ax-page { padding: 20px; height: 100%; }
+  .ax-canvas { transform-origin: top left; width: 100%; }
+  .ax-row { display: flex; gap: 14px; }
+  .wf { background: #f0efeb; border-radius: 6px; }
+  .ax-side { width: 150px; border: 1px solid var(--border); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
+  .ax-main { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .ax-label { font-size: 11px; color: var(--text-3); font-family: ui-monospace, Menlo, monospace; margin: 0 0 10px; }
+
+  /* ── Web page (non-Axure) ── */
+  .web-page { padding: 36px 48px; max-width: 640px; }
+  .web-page h3 { font-size: 20px; margin: 0 0 10px; }
+  .web-page p { font-size: 14px; color: var(--text-2); }
+
+  /* ── Detection prompt card ── */
+  .prompt-card {
+    position: absolute; top: 16px; right: 16px; width: 282px; z-index: 30;
+    background: rgba(255,255,255,.92);
+    backdrop-filter: blur(20px) saturate(1.8);
+    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+    border: 1px solid rgba(255,255,255,.9);
+    box-shadow: 0 0 0 .5px rgba(0,0,0,.08), 0 10px 32px rgba(20,30,70,.18);
+    border-radius: 14px; padding: 15px;
+    animation: slidein .25s ease-out;
+  }
+  @keyframes slidein { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+  .prompt-card .head { display: flex; align-items: center; gap: 8px; margin-bottom: 11px; }
+  .prompt-card .head .ti-bookmark { font-size: 17px; color: var(--accent); }
+  .prompt-card .head b { font-size: 13.5px; font-weight: 600; }
+  .prompt-card .head .close { margin-left: auto; color: var(--text-3); cursor: pointer; font-size: 15px; }
+  .prompt-card label.f { display: block; font-size: 11.5px; color: var(--text-2); margin-bottom: 3px; }
+  .prompt-card input[type=text], .prompt-card select {
+    width: 100%; height: 31px; padding: 0 9px;
+    border: 1px solid var(--border-strong); border-radius: 7px;
+    font-size: 13px; font-family: inherit; background: #fff; color: var(--text);
+  }
+  .prompt-card input:focus, .prompt-card select:focus { outline: 2px solid var(--accent-bg); border-color: var(--accent); }
+  .prompt-card .row { display: flex; gap: 7px; }
+  .pc-btn {
+    flex: 1; height: 30px; border-radius: 8px; cursor: pointer; font-size: 12.5px; font-family: inherit;
+    border: 1px solid var(--border-strong); background: #fff; color: var(--text);
+  }
+  .pc-btn:hover { background: #f6f5f2; }
+  .pc-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .pc-btn.primary:hover { background: #134d87; }
+  .prompt-card .ignore-link { display: block; text-align: center; margin-top: 9px; font-size: 11.5px; color: var(--text-3); cursor: pointer; text-decoration: underline; }
+  .mb8 { margin-bottom: 8px; } .mb11 { margin-bottom: 11px; }
+
+  /* ════ Liquid Glass popup(複刻現有外掛樣式)════ */
+  .popup {
+    position: absolute; top: 46px; right: 10px; width: 320px; z-index: 50;
+    border-radius: 16px; overflow: hidden;
+    background: linear-gradient(180deg, rgba(255,255,255,.78) 0%, rgba(255,255,255,.58) 100%);
+    backdrop-filter: blur(40px) saturate(2.2) brightness(1.05);
+    -webkit-backdrop-filter: blur(40px) saturate(2.2) brightness(1.05);
+    border: 1px solid rgba(255,255,255,.85);
+    border-bottom-color: rgba(255,255,255,.45);
+    box-shadow:
+      0 2px 0 rgba(255,255,255,1) inset,
+      0 0 0 .5px rgba(0,0,0,.06),
+      0 4px 16px rgba(20,30,70,.1),
+      0 16px 48px rgba(20,30,70,.22);
+    animation: slidein .18s ease-out;
+    color: rgba(0,0,0,.82);
+  }
+  .pp-head {
+    padding: 13px 16px 11px; border-bottom: 1px solid rgba(0,0,0,.055);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .pp-head h2 { margin: 0; font-size: 13.5px; font-weight: 600; letter-spacing: -.015em; white-space: nowrap; }
+  .pp-status { margin: 0; font-size: 10.5px; color: rgba(0,0,0,.42); display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pp-status::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #28cd41; flex-shrink: 0; }
+  .pp-status.warn::before { background: #ef9f27; }
+  .pp-meta {
+    margin: 10px 14px 0; padding: 4px 10px; border-radius: 999px;
+    font-size: 10.5px; color: rgba(0,0,0,.42);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    background: rgba(0,0,0,.055); border: 1px solid rgba(0,0,0,.07);
+  }
+  .pp-meta:empty { display: none; }
+
+  .pp-bookmark { margin: 10px 14px 0; border-radius: 11px; padding: 10px 11px; font-size: 12px; }
+  .pp-bookmark.ask { background: rgba(24,95,165,.1); border: 1px solid rgba(24,95,165,.18); }
+  .pp-bookmark.ask .bk-title { color: var(--accent); font-size: 12px; font-weight: 600; margin: 0 0 7px; display: flex; align-items: center; gap: 5px; }
+  .pp-bookmark.ask input[type=text] {
+    width: 100%; height: 29px; padding: 0 8px; margin-bottom: 7px;
+    border: 1px solid rgba(24,95,165,.3); border-radius: 7px;
+    font-size: 12.5px; font-family: inherit; background: rgba(255,255,255,.8);
+  }
+  .pp-bookmark.ask select {
+    width: 100%; height: 29px; padding: 0 6px; margin-bottom: 8px;
+    border: 1px solid rgba(24,95,165,.3); border-radius: 7px;
+    font-size: 12.5px; font-family: inherit; background: rgba(255,255,255,.8);
+  }
+  .pp-bookmark.done { background: rgba(15,110,86,.1); border: 1px solid rgba(15,110,86,.2); color: var(--success); display: flex; align-items: center; gap: 7px; }
+  .pp-bookmark.done .mgr-link { margin-left: auto; font-size: 11.5px; text-decoration: underline; cursor: pointer; white-space: nowrap; }
+  .pp-bookmark.muted { background: rgba(0,0,0,.045); border: 1px solid rgba(0,0,0,.07); color: rgba(0,0,0,.45); display: flex; align-items: center; gap: 7px; }
+  .pp-bookmark.muted .mgr-link { margin-left: auto; font-size: 11.5px; text-decoration: underline; cursor: pointer; white-space: nowrap; }
+
+  .pp-zoom { padding: 13px 16px 2px; }
+  .pp-zoom-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+  .pp-zoom-row label { font-size: 11px; font-weight: 500; color: rgba(0,0,0,.42); text-transform: uppercase; letter-spacing: .055em; }
+  .pp-val { font-size: 28px; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; line-height: 1; }
+  .pp-pct { font-size: 14px; font-weight: 500; color: rgba(0,0,0,.32); margin-left: 1px; }
+  .pp-range { --zoom-pct: 33.33%; width: 100%; appearance: none; -webkit-appearance: none; background: transparent; margin: 0 0 12px; padding: 10px 0; cursor: pointer; }
+  .pp-range::-webkit-slider-runnable-track {
+    height: 4px; border-radius: 99px;
+    background: linear-gradient(to right,
+      rgba(0,100,220,.65) 0%, rgba(0,100,220,.65) var(--zoom-pct),
+      rgba(0,0,0,.1) var(--zoom-pct), rgba(0,0,0,.1) 100%);
+  }
+  .pp-range::-webkit-slider-thumb {
+    appearance: none; -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,.95) 0%, rgba(235,240,250,.9) 100%);
+    border: 1px solid rgba(255,255,255,.9);
+    box-shadow: 0 2px 8px rgba(0,0,0,.2), 0 0 0 .5px rgba(0,0,0,.1);
+    margin-top: -7px; cursor: pointer;
+  }
+  .pp-range::-moz-range-track { height: 4px; border-radius: 99px; background: rgba(0,0,0,.1); }
+  .pp-range::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 1px solid rgba(255,255,255,.9); box-shadow: 0 2px 8px rgba(0,0,0,.2); cursor: pointer; }
+  .pp-range:disabled { opacity: .4; cursor: not-allowed; }
+
+  .pp-actions { display: grid; grid-template-columns: 40px 1fr 40px; gap: 7px; padding: 0 16px 13px; }
+  .pp-actions button {
+    height: 32px; border-radius: 10px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500;
+    border: 1px solid rgba(255,255,255,.85); border-bottom-color: rgba(255,255,255,.5);
+    background: linear-gradient(180deg, rgba(255,255,255,.7) 0%, rgba(255,255,255,.42) 100%);
+    box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 2px 6px rgba(0,0,0,.08);
+    color: rgba(0,0,0,.82);
+    display: flex; align-items: center; justify-content: center;
+    transition: all .1s ease;
+  }
+  .pp-actions button:hover { box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 3px 10px rgba(0,0,0,.1); }
+  .pp-actions button:active { transform: scale(.96); }
+  .pp-actions button:disabled { opacity: .4; cursor: not-allowed; }
+  .pp-actions .zin, .pp-actions .zout { font-size: 20px; font-weight: 300; }
+  .pp-actions .zreset {
+    font-size: 12.5px; color: rgba(0,90,200,.8);
+    background: linear-gradient(180deg, rgba(0,100,255,.12) 0%, rgba(0,100,255,.07) 100%);
+    border-color: rgba(0,100,255,.2);
+  }
+  .pp-hint { padding: 9px 16px 12px; border-top: 1px solid rgba(0,0,0,.055); display: flex; gap: 12px; flex-wrap: wrap; font-size: 10.5px; color: rgba(0,0,0,.32); }
+  .pp-hint kbd {
+    display: inline-block; background: rgba(0,0,0,.06); border: 1px solid rgba(0,0,0,.08);
+    border-bottom-width: 2px; border-bottom-color: rgba(0,0,0,.14);
+    border-radius: 5px; padding: 0 5px 1px; font-size: 10px; font-family: inherit; color: rgba(0,0,0,.45);
+  }
+
+  /* ── popup 書籤快速清單 ── */
+  .pp-bms { border-top: 1px solid rgba(0,0,0,.055); padding: 9px 8px 7px; }
+  .pp-bms-head { display: flex; align-items: baseline; gap: 6px; padding: 0 8px 7px; }
+  .pp-bms-head .ttl { font-size: 11px; font-weight: 600; color: rgba(0,0,0,.42); text-transform: uppercase; letter-spacing: .055em; }
+  .pp-bms-head .cnt { font-size: 10.5px; color: rgba(0,0,0,.3); }
+  .pp-bms-head .mgr { margin-left: auto; font-size: 11px; color: rgba(0,90,200,.8); cursor: pointer; }
+  .pp-bms-head .mgr:hover { text-decoration: underline; }
+  .pp-bms-search {
+    display: block; width: calc(100% - 16px); margin: 0 8px 7px; height: 27px; padding: 0 9px;
+    border: 1px solid rgba(0,0,0,.12); border-radius: 7px;
+    font-size: 12px; font-family: inherit; background: rgba(255,255,255,.75); color: rgba(0,0,0,.82);
+  }
+  .pp-bms-search:focus { outline: 2px solid rgba(24,95,165,.15); border-color: rgba(24,95,165,.5); }
+  .pp-bms-list { max-height: 172px; overflow-y: auto; }
+  .pp-bm-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; cursor: pointer; }
+  .pp-bm-item:hover { background: rgba(0,0,0,.06); }
+  .pp-bm-item .ti-bookmark { font-size: 14px; color: rgba(0,90,200,.75); flex-shrink: 0; }
+  .pp-bm-item .nm { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pp-bm-item .fp { font-size: 10px; padding: 1px 7px; border-radius: 8px; flex-shrink: 0; }
+  .pp-bm-item .ti-external-link { font-size: 13px; color: rgba(0,0,0,.3); opacity: 0; flex-shrink: 0; }
+  .pp-bm-item:hover .ti-external-link { opacity: 1; }
+  .pp-bms-empty { font-size: 11.5px; color: rgba(0,0,0,.35); text-align: center; padding: 4px 0 8px; }
+  .bm-meta { cursor: pointer; }
+  .bm-meta:hover .name { color: var(--accent); text-decoration: underline; }
+
+  /* ════ Options page (tab 4) ════ */
+  .opt-page { padding: 24px 28px; background: #f7f6f3; min-height: 100%; }
+  .opt-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; margin-bottom: 16px; }
+  .mgr-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .mgr-head h3 { font-size: 15.5px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 7px; }
+  .mgr-head input[type=text] { flex: 1; min-width: 160px; height: 32px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 13px; font-family: inherit; }
+  .mgr-head select { height: 32px; padding: 0 6px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 13px; font-family: inherit; background: #fff; }
+  .bm-row { display: flex; align-items: center; gap: 12px; padding: 11px 4px; border-bottom: 1px solid var(--border); }
+  .bm-row:last-child { border-bottom: none; }
+  .bm-row .ti-bookmark { font-size: 17px; color: var(--text-2); }
+  .bm-meta { flex: 1; min-width: 0; }
+  .bm-meta .name { font-size: 13.5px; font-weight: 600; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bm-meta .url { font-size: 11.5px; color: var(--text-3); margin: 0; font-family: ui-monospace, Menlo, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pill { font-size: 11px; padding: 2px 9px; border-radius: 9px; white-space: nowrap; }
+  .pill.f-active { background: var(--success-bg); color: var(--success); }
+  .pill.f-done { background: #eeedfe; color: #3c3489; }
+  .pill.f-none { background: #f1efe8; color: #444441; }
+  .bm-last { font-size: 11.5px; color: var(--text-2); min-width: 70px; text-align: right; }
+  .bm-count { font-size: 11.5px; color: var(--text-3); min-width: 38px; text-align: right; }
+  .act { font-size: 15px; color: var(--text-3); cursor: pointer; }
+  .act:hover { color: var(--text); }
+  .mgr-foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .mgr-foot button { height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border-strong); background: #fff; font-size: 12.5px; font-family: inherit; cursor: pointer; }
+  .mgr-foot button:hover { background: #f6f5f2; }
+  .mgr-foot label { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-2); cursor: pointer; }
+  .note { font-size: 11.5px; color: var(--text-3); }
+  .empty { text-align: center; color: var(--text-3); font-size: 13px; padding: 22px 0; }
+  .opt-card h4 { font-size: 13px; font-weight: 600; margin: 0 0 10px; }
+  .opt-card .radio-row { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text-2); margin-bottom: 7px; cursor: pointer; }
+  .ignored-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+
+  /* toast */
+  .toast {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(8px);
+    background: #2c2c2a; color: #fff; font-size: 13px;
+    border-radius: 10px; padding: 9px 18px; opacity: 0; pointer-events: none;
+    transition: all .25s ease; z-index: 99; max-width: 80vw;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  footer.note-f { margin-top: 28px; font-size: 12px; color: var(--text-3); border-top: 1px solid var(--border); padding-top: 14px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="site">
+    <h1><i class="ti ti-arrows-maximize" style="color:var(--accent)"></i> Axure Scale + Link Hub</h1>
+    <span class="ver">完整互動原型 · 模擬 Safari 環境 · 資料存於 localStorage</span>
+    <span class="spacer"></span>
+    <button class="ghost-btn" id="reset-all"><i class="ti ti-refresh"></i> 重置 demo 資料</button>
+  </header>
+  <p class="lede">下面是一個假的 Safari 視窗。四個分頁對應四種情境;右上角 <i class="ti ti-arrows-maximize"></i> 是外掛圖示,點開就是現有的縮放 popup(縮放會真的作用在頁面上),書籤功能融合在同一個 popup 與頁面提示卡中。</p>
+  <div class="steps">
+    <span class="step"><b>1</b> 分頁一是「沒看過的專案」→ 出現提示卡(或 badge,看設定)</span>
+    <span class="step"><b>2</b> 點外掛圖示 → 縮放 + 書籤區塊同一個 popup</span>
+    <span class="step"><b>3</b> 分頁四 = 外掛設定頁,可管理 / 匯出 / 改提示模式</span>
+    <span class="step"><b>4</b> 快捷鍵 <b>⌥⇧↑ / ⌥⇧↓ / ⌥⇧0</b> 可直接縮放</span>
+  </div>
+
+  <div class="safari">
+    <div class="chrome">
+      <div class="chrome-row">
+        <span class="dot" style="background:#e24b4a"></span>
+        <span class="dot" style="background:#ef9f27"></span>
+        <span class="dot" style="background:#639922"></span>
+        <span class="nav-arrows"><i class="ti ti-chevron-left"></i><i class="ti ti-chevron-right"></i></span>
+        <div class="urlbar"><i class="ti ti-lock"></i><span id="urlbar-text"></span></div>
+        <div class="ext-slot">
+          <button class="ext-btn" id="ext-btn" title="Axure Scale"><i class="ti ti-arrows-maximize"></i></button>
+          <span class="ext-badge" id="ext-badge" hidden>+</span>
+        </div>
+      </div>
+      <div class="tabstrip" id="tabstrip"></div>
+    </div>
+
+    <div class="viewport" id="viewport">
+      <div class="pageview" id="pv-t1">
+        <div class="ax-page">
+          <div class="ax-canvas" id="canvas-t1">
+            <p class="ax-label">Axure RP 11 — 電商 App 改版 v3 / home</p>
+            <div class="ax-row">
+              <div class="ax-side">
+                <div class="wf" style="height:10px;width:72%"></div>
+                <div class="wf" style="height:10px;width:88%"></div>
+                <div class="wf" style="height:10px;width:60%"></div>
+                <div class="wf" style="height:10px;width:78%"></div>
+                <div class="wf" style="height:10px;width:66%"></div>
+                <div class="wf" style="height:10px;width:82%"></div>
+              </div>
+              <div class="ax-main">
+                <div class="wf" style="height:30px;width:42%"></div>
+                <div class="wf" style="height:110px"></div>
+                <div class="ax-row">
+                  <div class="wf" style="height:46px;flex:1"></div>
+                  <div class="wf" style="height:46px;flex:1"></div>
+                  <div class="wf" style="height:46px;flex:1"></div>
+                </div>
+                <div class="wf" style="height:70px;width:65%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pageview" id="pv-t2">
+        <div class="ax-page">
+          <div class="ax-canvas" id="canvas-t2">
+            <p class="ax-label">Axure RP 11 — 後台 Dashboard 原型 / overview</p>
+            <div class="ax-row">
+              <div class="ax-main">
+                <div class="ax-row">
+                  <div class="wf" style="height:64px;flex:1"></div>
+                  <div class="wf" style="height:64px;flex:1"></div>
+                  <div class="wf" style="height:64px;flex:1"></div>
+                  <div class="wf" style="height:64px;flex:1"></div>
+                </div>
+                <div class="wf" style="height:160px"></div>
+                <div class="ax-row">
+                  <div class="wf" style="height:90px;flex:2"></div>
+                  <div class="wf" style="height:90px;flex:1"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pageview" id="pv-t3">
+        <div class="web-page">
+          <h3>CSS transform — MDN Web Docs</h3>
+          <p>這是一個普通網頁,不是 Axure 原型。外掛在這裡會顯示「此頁面未偵測到 Axure 容器」,縮放控制停用,也不會出現書籤提示。</p>
+          <p>The <code>transform</code> CSS property lets you rotate, scale, skew, or translate an element…</p>
+        </div>
+      </div>
+
+      <div class="pageview" id="pv-t4">
+        <div class="opt-page">
+          <div class="opt-card">
+            <div class="mgr-head">
+              <h3><i class="ti ti-folder"></i> Axure 連結管理</h3>
+              <input type="text" id="mgr-search" placeholder="搜尋名稱或網址…" />
+              <select id="mgr-filter">
+                <option value="">全部分組</option>
+                <option>進行中</option>
+                <option>已交付</option>
+                <option>未分類</option>
+              </select>
+            </div>
+            <div id="mgr-list"></div>
+            <div class="mgr-foot">
+              <button id="export-btn"><i class="ti ti-download"></i> 匯出 bookmarks.html</button>
+              <label><input type="checkbox" disabled /> 同步到 Chrome 書籤</label>
+              <span class="note">目前環境為 Safari,不支援 bookmarks API;此開關僅在 Chrome 可用</span>
+            </div>
+          </div>
+          <div class="opt-card">
+            <h4>偵測提示方式</h4>
+            <label class="radio-row"><input type="radio" name="pmode" value="card" /> 頁面內浮動卡片(預設)</label>
+            <label class="radio-row"><input type="radio" name="pmode" value="badge" /> 僅圖示 badge,點開 popup 才提示</label>
+          </div>
+          <div class="opt-card">
+            <h4>已忽略的專案</h4>
+            <div id="ignored-list"><p class="note" style="margin:0">目前沒有忽略的專案</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup" id="popup" hidden></div>
+  </div>
+
+  <footer class="note-f">
+    互動為模擬,無真實瀏覽器 API。縮放真的會套用 CSS transform 在 Axure 畫布上(對應實際外掛行為);「匯出 bookmarks.html」會下載真實可匯入的書籤檔。資料(書籤 / 忽略清單 / 各頁倍率 / 提示模式)存在 localStorage,重新整理不會消失;「重置 demo 資料」可還原。對應規劃:docs/plan-axure-link-hub.md
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+var TABS = [
+  { id: "t1", title: "電商 App 改版 v3", icon: "ti-layout-dashboard", url: "https://abc123.axshare.com/#id=h0m3&p=home", kind: "axure", key: "axshare:abc123", autoName: "電商 App 改版 v3", canonical: "https://abc123.axshare.com" },
+  { id: "t2", title: "後台 Dashboard 原型", icon: "ti-chart-bar", url: "https://x9k2m1.axshare.com/start.html", kind: "axure", key: "axshare:x9k2m1", autoName: "後台 Dashboard 原型", canonical: "https://x9k2m1.axshare.com" },
+  { id: "t3", title: "MDN Web Docs", icon: "ti-file-text", url: "https://developer.mozilla.org/zh-TW/docs/Web/CSS/transform", kind: "web" },
+  { id: "t4", title: "外掛設定 — Axure 連結管理", icon: "ti-settings", url: "safari-web-extension://axure-scale/options.html", kind: "options" }
+];
+
+var LS_KEY = "axure-link-hub-proto-v1";
+var DEFAULT_STATE = {
+  mode: "card",
+  bookmarks: [
+    { key: "axshare:x9k2m1", name: "後台 Dashboard 原型", url: "https://x9k2m1.axshare.com", folder: "進行中", last: "3 天前", n: 11 },
+    { key: "cloud:proj-5512", name: "會員系統 Flow", url: "https://app.axure.cloud/app/project/5512", folder: "已交付", last: "2026/05/30", n: 7 }
+  ],
+  ignored: [],
+  zoom: {}
+};
+var state = load();
+var session = { skipped: {}, prompted: {}, popupOpen: false, activeTab: "t1" };
+var pillClass = { "進行中": "f-active", "已交付": "f-done", "未分類": "f-none" };
+var cardTimer = null;
+
+function load() {
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
+function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {} }
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function $(id) { return document.getElementById(id); }
+function tabById(id) { for (var i = 0; i < TABS.length; i++) if (TABS[i].id === id) return TABS[i]; return TABS[0]; }
+function isBookmarked(key) { return state.bookmarks.some(function (b) { return b.key === key; }); }
+function isIgnored(key) { return state.ignored.indexOf(key) >= 0; }
+function getZoom(tab) { return state.zoom[tab.key || tab.id] || 100; }
+
+function toast(m) {
+  var t = $("toast");
+  t.textContent = m; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove("show"); }, 2800);
+}
+
+/* ── tabs ── */
+function renderTabs() {
+  var strip = $("tabstrip");
+  strip.innerHTML = "";
+  TABS.forEach(function (tab) {
+    var el = document.createElement("div");
+    el.className = "tab" + (session.activeTab === tab.id ? " active" : "");
+    var bmDot = (tab.kind === "axure" && isBookmarked(tab.key)) ? '<span class="bm-dot" title="已加入書籤"></span>' : "";
+    el.innerHTML = '<i class="ti ' + tab.icon + '"></i><span>' + esc(tab.title) + '</span>' + bmDot;
+    el.addEventListener("click", function () { activateTab(tab.id); });
+    strip.appendChild(el);
+  });
+}
+
+function activateTab(id) {
+  session.activeTab = id;
+  closePopup();
+  removeCard();
+  var tab = tabById(id);
+  TABS.forEach(function (t) { $("pv-" + t.id).classList.toggle("active", t.id === id); });
+  $("urlbar-text").textContent = tab.url;
+  renderTabs();
+  applyZoomVisual(tab);
+  updateBadge();
+  if (tab.kind === "axure" && shouldPrompt(tab) && state.mode === "card" && !session.prompted[tab.key]) {
+    session.prompted[tab.key] = true;
+    showCard(tab);
+  }
+}
+
+function shouldPrompt(tab) {
+  return tab.kind === "axure" && !isBookmarked(tab.key) && !isIgnored(tab.key) && !session.skipped[tab.key];
+}
+
+function updateBadge() {
+  var tab = tabById(session.activeTab);
+  $("ext-badge").hidden = !(tab.kind === "axure" && shouldPrompt(tab));
+}
+
+/* ── detection prompt card ── */
+function removeCard() {
+  clearTimeout(cardTimer);
+  var old = document.querySelector(".prompt-card");
+  if (old) old.remove();
+}
+
+function folderOptions(selected) {
+  var folders = ["進行中", "已交付", "未分類"];
+  state.bookmarks.forEach(function (b) { if (folders.indexOf(b.folder) < 0) folders.push(b.folder); });
+  return folders.map(function (f) {
+    return '<option' + (f === selected ? " selected" : "") + '>' + esc(f) + '</option>';
+  }).join("") + '<option value="__new">＋ 新增分組…</option>';
+}
+
+function showCard(tab) {
+  removeCard();
+  var card = document.createElement("div");
+  card.className = "prompt-card";
+  card.innerHTML =
+    '<div class="head"><i class="ti ti-bookmark"></i><b>加入 Axure 書籤?</b><i class="ti ti-x close" title="收合(圖示 badge 仍會提示)"></i></div>' +
+    '<label class="f">名稱(自動偵測,可修改)</label>' +
+    '<input type="text" class="mb8" value="' + esc(tab.autoName) + '" />' +
+    '<label class="f">分組</label>' +
+    '<select class="mb11">' + folderOptions("未分類") + '</select>' +
+    '<div class="row"><button class="pc-btn primary">加入</button><button class="pc-btn skip">略過</button></div>' +
+    '<span class="ignore-link">不再提醒此專案</span>';
+  $("pv-" + tab.id).appendChild(card);
+
+  var nameInput = card.querySelector("input");
+  var folderSel = card.querySelector("select");
+  card.querySelector(".primary").addEventListener("click", function () {
+    addBookmark(tab, nameInput.value, folderSel.value === "__new" ? (prompt("新分組名稱:") || "未分類") : folderSel.value);
+    removeCard();
+  });
+  card.querySelector(".skip").addEventListener("click", function () {
+    session.skipped[tab.key] = true;
+    removeCard(); updateBadge();
+    toast("已略過,本次 session 不再詢問(popup 內仍可手動加入)");
+  });
+  card.querySelector(".ignore-link").addEventListener("click", function () {
+    state.ignored.push(tab.key); save();
+    removeCard(); updateBadge(); renderIgnored();
+    toast("已永久忽略此專案,可在設定頁復原");
+  });
+  card.querySelector(".close").addEventListener("click", function () {
+    removeCard(); updateBadge();
+    toast("已收合;圖示 badge 仍會提示");
+  });
+  cardTimer = setTimeout(function () {
+    if (document.body.contains(card)) {
+      removeCard(); updateBadge();
+      toast("提示卡 8 秒未操作自動收合,badge 仍亮著");
+    }
+  }, 8000);
+}
+
+function addBookmark(tab, name, folder) {
+  state.bookmarks.unshift({ key: tab.key, name: name || "未命名", url: tab.canonical, folder: folder, last: "剛剛", n: 1 });
+  if (!pillClass[folder]) pillClass[folder] = "f-none";
+  save();
+  renderTabs(); renderManager(); updateBadge();
+  toast('已加入書籤「' + (name || "未命名") + '」→ ' + folder);
+  if (session.popupOpen) renderPopup();
+}
+
+/* ── popup (liquid glass) ── */
+function closePopup() {
+  session.popupOpen = false;
+  $("popup").hidden = true;
+  $("ext-btn").classList.remove("open");
+}
+
+function togglePopup() {
+  if (session.popupOpen) { closePopup(); return; }
+  session.popupOpen = true;
+  $("ext-btn").classList.add("open");
+  removeCard();
+  renderPopup();
+  $("popup").hidden = false;
+}
+
+function bookmarkSection(tab) {
+  if (tab.kind !== "axure") return "";
+  if (isBookmarked(tab.key)) {
+    var bm = state.bookmarks.filter(function (b) { return b.key === tab.key; })[0];
+    return '<div class="pp-bookmark done"><i class="ti ti-bookmark"></i>已在書籤 · ' + esc(bm.folder) +
+      '<span class="mgr-link" data-act="open-mgr">管理 →</span></div>';
+  }
+  if (isIgnored(tab.key)) {
+    return '<div class="pp-bookmark muted"><i class="ti ti-bookmark-off"></i>此專案已設為忽略' +
+      '<span class="mgr-link" data-act="unignore">仍要加入</span></div>';
+  }
+  return '<div class="pp-bookmark ask">' +
+    '<p class="bk-title"><i class="ti ti-bookmark"></i>偵測到新 Axure 專案</p>' +
+    '<input type="text" id="pp-bm-name" value="' + esc(tab.autoName) + '" />' +
+    '<select id="pp-bm-folder">' + folderOptions("未分類") + '</select>' +
+    '<div style="display:flex;gap:7px">' +
+    '<button class="pc-btn primary" data-act="add" style="height:29px;font-size:12px">加入書籤</button>' +
+    '<button class="pc-btn" data-act="skip" style="height:29px;font-size:12px">略過</button>' +
+    '</div></div>';
+}
+
+function openBookmark(key) {
+  var bm = state.bookmarks.filter(function (b) { return b.key === key; })[0];
+  if (!bm) return;
+  bm.last = "剛剛"; bm.n += 1; save(); renderManager();
+  var existing = TABS.filter(function (t) { return t.key === key; })[0];
+  closePopup();
+  if (existing) { activateTab(existing.id); toast("已切換到「" + bm.name + "」"); return; }
+  createTabForBookmark(bm);
+}
+
+var dynCount = 0;
+function createTabForBookmark(bm) {
+  dynCount += 1;
+  var id = "dyn" + dynCount;
+  var tab = { id: id, title: bm.name, icon: "ti-layout-dashboard", url: bm.url + (bm.url.indexOf("file:") === 0 ? "" : "/#id=auto&p=home"), kind: "axure", key: bm.key, autoName: bm.name, canonical: bm.url };
+  TABS.push(tab);
+  var pv = document.createElement("div");
+  pv.className = "pageview";
+  pv.id = "pv-" + id;
+  pv.innerHTML =
+    '<div class="ax-page"><div class="ax-canvas" id="canvas-' + id + '">' +
+    '<p class="ax-label">Axure RP 11 — ' + esc(bm.name) + ' / home</p>' +
+    '<div class="ax-row">' +
+    '<div class="ax-side">' +
+    '<div class="wf" style="height:10px;width:80%"></div><div class="wf" style="height:10px;width:64%"></div>' +
+    '<div class="wf" style="height:10px;width:74%"></div><div class="wf" style="height:10px;width:58%"></div>' +
+    '</div>' +
+    '<div class="ax-main">' +
+    '<div class="wf" style="height:30px;width:50%"></div><div class="wf" style="height:120px"></div>' +
+    '<div class="ax-row"><div class="wf" style="height:52px;flex:1"></div><div class="wf" style="height:52px;flex:1"></div></div>' +
+    '</div></div></div></div>';
+  $("viewport").appendChild(pv);
+  activateTab(id);
+  toast("已在新分頁開啟「" + bm.name + "」");
+}
+
+function bookmarksListHTML() {
+  var n = state.bookmarks.length;
+  var html = '<div class="pp-bms">' +
+    '<div class="pp-bms-head"><span class="ttl">書籤</span><span class="cnt">' + n + '</span>' +
+    '<span class="mgr" data-act="open-mgr-list">管理 →</span></div>';
+  if (n > 4) html += '<input type="text" class="pp-bms-search" id="pp-bms-q" placeholder="搜尋書籤…" />';
+  html += '<div class="pp-bms-list" id="pp-bms-list"></div></div>';
+  return html;
+}
+
+function refreshPopupBmList() {
+  var listEl = $("pp-bms-list");
+  if (!listEl) return;
+  var qEl = $("pp-bms-q");
+  var q = qEl ? qEl.value.toLowerCase() : "";
+  var rows = state.bookmarks.filter(function (b) {
+    return !q || b.name.toLowerCase().indexOf(q) >= 0 || b.url.toLowerCase().indexOf(q) >= 0;
+  });
+  if (!rows.length) {
+    listEl.innerHTML = '<p class="pp-bms-empty">' + (state.bookmarks.length ? "沒有符合的書籤" : "還沒有書籤,開啟 Axure 頁面時會自動詢問") + '</p>';
+    return;
+  }
+  listEl.innerHTML = "";
+  rows.forEach(function (b) {
+    var item = document.createElement("div");
+    item.className = "pp-bm-item";
+    item.title = b.url;
+    item.innerHTML = '<i class="ti ti-bookmark"></i><span class="nm">' + esc(b.name) + '</span>' +
+      '<span class="fp pill ' + (pillClass[b.folder] || "f-none") + '">' + esc(b.folder) + '</span>' +
+      '<i class="ti ti-external-link"></i>';
+    item.addEventListener("click", function () { openBookmark(b.key); });
+    listEl.appendChild(item);
+  });
+}
+
+function renderPopup() {
+  var tab = tabById(session.activeTab);
+  var pp = $("popup");
+  var head, meta = "", zoomDisabled = false, statusClass = "";
+
+  if (tab.kind === "axure") {
+    head = "已儲存此頁倍率";
+    try { var u = new URL(tab.url); meta = u.hostname + u.pathname; } catch (e) { meta = tab.url; }
+  } else if (tab.kind === "options") {
+    head = "此頁面未偵測到 Axure 容器。"; zoomDisabled = true; statusClass = "warn";
+  } else {
+    head = "此頁面未偵測到 Axure 容器。"; zoomDisabled = true; statusClass = "warn";
+  }
+
+  var z = getZoom(tab);
+  var pct = ((z - 50) / (200 - 50)) * 100;
+
+  pp.innerHTML =
+    '<div class="pp-head"><h2>Axure Scale</h2><p class="pp-status ' + statusClass + '">' + esc(head) + '</p></div>' +
+    '<p class="pp-meta">' + esc(meta) + '</p>' +
+    bookmarkSection(tab) +
+    '<div class="pp-zoom">' +
+    '<div class="pp-zoom-row"><label>縮放</label><div><span class="pp-val" id="pp-val">' + z + '</span><span class="pp-pct">%</span></div></div>' +
+    '<input type="range" class="pp-range" id="pp-range" min="50" max="200" step="10" value="' + z + '" style="--zoom-pct:' + pct + '%"' + (zoomDisabled ? " disabled" : "") + ' />' +
+    '</div>' +
+    '<div class="pp-actions">' +
+    '<button class="zout"' + (zoomDisabled ? " disabled" : "") + '>−</button>' +
+    '<button class="zreset"' + (zoomDisabled ? " disabled" : "") + '>重置</button>' +
+    '<button class="zin"' + (zoomDisabled ? " disabled" : "") + '>+</button>' +
+    '</div>' +
+    bookmarksListHTML() +
+    '<div class="pp-hint"><span><kbd>⌥⇧↑</kbd> 放大</span><span><kbd>⌥⇧↓</kbd> 縮小</span><span><kbd>⌥⇧0</kbd> 重置</span></div>';
+
+  refreshPopupBmList();
+  var qEl = $("pp-bms-q");
+  if (qEl) qEl.addEventListener("input", refreshPopupBmList);
+  var mgrList = pp.querySelector('[data-act="open-mgr-list"]');
+  if (mgrList) mgrList.addEventListener("click", function () { closePopup(); activateTab("t4"); });
+
+  if (!zoomDisabled) {
+    var range = $("pp-range");
+    range.addEventListener("input", function () { setZoom(tab, Number(range.value)); });
+    pp.querySelector(".zin").addEventListener("click", function () { setZoom(tab, getZoom(tab) + 10); });
+    pp.querySelector(".zout").addEventListener("click", function () { setZoom(tab, getZoom(tab) - 10); });
+    pp.querySelector(".zreset").addEventListener("click", function () { setZoom(tab, 100); });
+  }
+
+  var addBtn = pp.querySelector('[data-act="add"]');
+  if (addBtn) addBtn.addEventListener("click", function () {
+    var sel = $("pp-bm-folder");
+    addBookmark(tab, $("pp-bm-name").value, sel.value === "__new" ? (prompt("新分組名稱:") || "未分類") : sel.value);
+  });
+  var skipBtn = pp.querySelector('[data-act="skip"]');
+  if (skipBtn) skipBtn.addEventListener("click", function () {
+    session.skipped[tab.key] = true;
+    updateBadge(); renderPopup();
+    toast("已略過,本次 session 不再提示");
+  });
+  var mgrLink = pp.querySelector('[data-act="open-mgr"]');
+  if (mgrLink) mgrLink.addEventListener("click", function () { closePopup(); activateTab("t4"); });
+  var unig = pp.querySelector('[data-act="unignore"]');
+  if (unig) unig.addEventListener("click", function () {
+    state.ignored = state.ignored.filter(function (k) { return k !== tab.key; });
+    save(); renderIgnored(); updateBadge(); renderPopup();
+  });
+}
+
+/* ── zoom ── */
+function setZoom(tab, z) {
+  z = Math.max(50, Math.min(200, Math.round(z / 10) * 10));
+  state.zoom[tab.key || tab.id] = z;
+  save();
+  applyZoomVisual(tab);
+  if (session.popupOpen) {
+    var val = $("pp-val"), range = $("pp-range");
+    if (val) val.textContent = z;
+    if (range) { range.value = z; range.style.setProperty("--zoom-pct", (((z - 50) / 150) * 100) + "%"); }
+  }
+}
+function applyZoomVisual(tab) {
+  if (tab.kind !== "axure") return;
+  var canvas = $("canvas-" + tab.id);
+  if (canvas) canvas.style.transform = "scale(" + getZoom(tab) / 100 + ")";
+}
+
+/* ── manager page ── */
+function renderManager() {
+  var q = $("mgr-search").value.toLowerCase();
+  var f = $("mgr-filter").value;
+  var el = $("mgr-list");
+  el.innerHTML = "";
+  var rows = state.bookmarks.filter(function (b) {
+    return (!f || b.folder === f) && (!q || b.name.toLowerCase().indexOf(q) >= 0 || b.url.toLowerCase().indexOf(q) >= 0);
+  });
+  if (!rows.length) { el.innerHTML = '<p class="empty">沒有符合的書籤</p>'; return; }
+  rows.forEach(function (b) {
+    var row = document.createElement("div");
+    row.className = "bm-row";
+    row.innerHTML =
+      '<i class="ti ti-bookmark"></i>' +
+      '<div class="bm-meta"><p class="name">' + esc(b.name) + '</p><p class="url">' + esc(b.url) + '</p></div>' +
+      '<span class="pill ' + (pillClass[b.folder] || "f-none") + '">' + esc(b.folder) + '</span>' +
+      '<span class="bm-last">' + esc(b.last) + '</span>' +
+      '<span class="bm-count">' + b.n + ' 次</span>' +
+      '<i class="ti ti-edit act edit" title="改名"></i>' +
+      '<i class="ti ti-trash act del" title="刪除"></i>';
+    row.querySelector(".bm-meta").addEventListener("click", function () { openBookmark(b.key); });
+    row.querySelector(".del").addEventListener("click", function () {
+      state.bookmarks = state.bookmarks.filter(function (x) { return x.key !== b.key; });
+      save(); renderManager(); renderTabs(); updateBadge();
+      toast('已刪除「' + b.name + '」');
+    });
+    row.querySelector(".edit").addEventListener("click", function () {
+      var nv = prompt("修改書籤名稱:", b.name);
+      if (nv) { b.name = nv; save(); renderManager(); }
+    });
+    el.appendChild(row);
+  });
+}
+
+function renderIgnored() {
+  var el = $("ignored-list");
+  if (!state.ignored.length) { el.innerHTML = '<p class="note" style="margin:0">目前沒有忽略的專案</p>'; return; }
+  el.innerHTML = "";
+  state.ignored.forEach(function (key) {
+    var row = document.createElement("div");
+    row.className = "ignored-row";
+    row.innerHTML = '<span class="pill f-none">' + esc(key) + '</span><i class="ti ti-arrow-back-up act" title="復原"></i>';
+    row.querySelector(".act").addEventListener("click", function () {
+      state.ignored = state.ignored.filter(function (k) { return k !== key; });
+      save(); renderIgnored(); updateBadge();
+      toast("已復原,下次造訪會重新詢問");
+    });
+    el.appendChild(row);
+  });
+}
+
+/* ── export ── */
+function exportBookmarks() {
+  var lines = ['<!DOCTYPE NETSCAPE-Bookmark-file-1>', '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">', '<TITLE>Bookmarks</TITLE>', '<H1>Bookmarks</H1>', '<DL><p>', '  <DT><H3>Axure</H3>', '  <DL><p>'];
+  var folders = {};
+  state.bookmarks.forEach(function (b) { (folders[b.folder] = folders[b.folder] || []).push(b); });
+  Object.keys(folders).forEach(function (f) {
+    lines.push('    <DT><H3>' + esc(f) + '</H3>', '    <DL><p>');
+    folders[f].forEach(function (b) { lines.push('      <DT><A HREF="' + esc(b.url) + '">' + esc(b.name) + '</A>'); });
+    lines.push('    </DL><p>');
+  });
+  lines.push('  </DL><p>', '</DL><p>');
+  var blob = new Blob([lines.join("\n")], { type: "text/html" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "axure-bookmarks.html";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("已下載 axure-bookmarks.html — Safari「檔案 > 匯入」即可進真實書籤");
+}
+
+/* ── wiring ── */
+$("ext-btn").addEventListener("click", function (e) { e.stopPropagation(); togglePopup(); });
+$("popup").addEventListener("click", function (e) { e.stopPropagation(); });
+document.addEventListener("click", function (e) {
+  if (session.popupOpen && !e.target.closest(".ext-slot")) closePopup();
+});
+$("mgr-search").addEventListener("input", renderManager);
+$("mgr-filter").addEventListener("change", renderManager);
+$("export-btn").addEventListener("click", exportBookmarks);
+
+document.querySelectorAll('input[name="pmode"]').forEach(function (r) {
+  r.addEventListener("change", function () {
+    state.mode = r.value; save();
+    toast(r.value === "card" ? "已切換:頁面內浮動卡片" : "已切換:僅 badge 提示(回到分頁一試試)");
+  });
+});
+
+document.addEventListener("keydown", function (e) {
+  if (!e.altKey || !e.shiftKey) return;
+  var tab = tabById(session.activeTab);
+  if (tab.kind !== "axure") return;
+  if (e.code === "ArrowUp") { e.preventDefault(); setZoom(tab, getZoom(tab) + 10); toast("⌥⇧↑ 放大 → " + getZoom(tab) + "%"); }
+  else if (e.code === "ArrowDown") { e.preventDefault(); setZoom(tab, getZoom(tab) - 10); toast("⌥⇧↓ 縮小 → " + getZoom(tab) + "%"); }
+  else if (e.code === "Digit0") { e.preventDefault(); setZoom(tab, 100); toast("⌥⇧0 重置 → 100%"); }
+});
+
+$("reset-all").addEventListener("click", function () {
+  localStorage.removeItem(LS_KEY);
+  state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  session.skipped = {}; session.prompted = {};
+  closePopup(); removeCard();
+  init();
+  toast("demo 資料已重置");
+});
+
+function init() {
+  document.querySelectorAll('input[name="pmode"]').forEach(function (r) { r.checked = (r.value === state.mode); });
+  renderManager();
+  renderIgnored();
+  TABS.forEach(applyZoomVisual);
+  activateTab(session.activeTab);
+}
+init();
+</script>
+</body>
+</html>

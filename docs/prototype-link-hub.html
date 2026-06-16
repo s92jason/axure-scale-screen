@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Axure Link Hub — Prototype v0.3.0</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.30.0/dist/tabler-icons.min.css" />
+<style>
+  :root {
+    --bg: #f5f5f2;
+    --surface: #ffffff;
+    --border: #e2e1dc;
+    --border-strong: #c9c8c2;
+    --text: #1f1f1d;
+    --text-2: #6b6a64;
+    --text-3: #9b9a93;
+    --accent: #185fa5;
+    --accent-bg: #e6f1fb;
+    --success: #0f6e56;
+    --success-bg: #e1f5ee;
+    --danger: #a32d2d;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .page { max-width: 860px; margin: 0 auto; padding: 32px 20px 80px; }
+  header.site { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+  header.site h1 { font-size: 22px; font-weight: 600; margin: 0; }
+  header.site .ver { font-size: 13px; color: var(--text-3); }
+  .lede { color: var(--text-2); font-size: 14px; margin: 0 0 32px; }
+  h2.sec { font-size: 15px; font-weight: 600; color: var(--text-2); margin: 40px 0 12px; display: flex; align-items: center; gap: 8px; }
+  h2.sec .num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--text); color: #fff; font-size: 12px; }
+
+  .stage { background: #e9e8e3; border-radius: 14px; padding: 14px; }
+  .browser { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .browser-bar { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-bottom: 1px solid var(--border); }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .urlbar { flex: 1; background: var(--bg); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; color: var(--text-2); font-family: ui-monospace, Menlo, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .viewport { position: relative; height: 300px; padding: 16px; }
+  .wf { background: #f0efeb; border-radius: 6px; }
+  .wire { display: flex; gap: 14px; height: 100%; }
+  .wire .side { width: 130px; border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .wire .main { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+  .prompt-card {
+    position: absolute; top: 14px; right: 14px; width: 280px;
+    background: var(--surface); border: 1px solid var(--border-strong);
+    border-radius: 12px; padding: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.10);
+    animation: slidein .25s ease-out;
+  }
+  @keyframes slidein { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+  .prompt-card .head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .prompt-card .head .ti { font-size: 18px; color: var(--accent); }
+  .prompt-card .head b { font-size: 14px; font-weight: 600; }
+  .prompt-card .head .close { margin-left: auto; color: var(--text-3); cursor: pointer; font-size: 16px; }
+  label.f { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 4px; }
+  input[type=text], select, .search {
+    width: 100%; height: 34px; padding: 0 10px;
+    border: 1px solid var(--border-strong); border-radius: 8px;
+    font-size: 13.5px; font-family: inherit; background: var(--surface); color: var(--text);
+  }
+  input[type=text]:focus, select:focus, .search:focus { outline: 2px solid var(--accent-bg); border-color: var(--accent); }
+  .mb10 { margin-bottom: 10px; } .mb12 { margin-bottom: 12px; }
+  .row { display: flex; gap: 8px; }
+  button {
+    height: 32px; padding: 0 12px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--border-strong); background: var(--surface);
+    font-size: 13px; font-family: inherit; color: var(--text);
+  }
+  button:hover { background: var(--bg); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { background: #134d87; }
+  .ignore-link { display: block; text-align: center; margin-top: 10px; font-size: 12px; color: var(--text-3); cursor: pointer; text-decoration: underline; }
+  .done-card {
+    position: absolute; top: 14px; right: 14px; width: 280px;
+    background: var(--success-bg); color: var(--success);
+    border-radius: 12px; padding: 14px 16px; font-size: 13px;
+    animation: slidein .25s ease-out;
+  }
+
+  .badge-demo { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; padding: 22px; }
+  .toolbar-icon { position: relative; display: inline-block; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 11px 15px; }
+  .toolbar-icon .ti { font-size: 24px; }
+  .badge { position: absolute; top: -7px; right: -7px; background: #d85a30; color: #fff; font-size: 11px; font-weight: 600; border-radius: 9px; padding: 1px 6px; }
+  .popup { width: 300px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+  .popup .add-block { background: var(--accent-bg); border-radius: 9px; padding: 11px 12px; margin-bottom: 14px; }
+  .popup .add-block p { margin: 0 0 8px; font-size: 13px; color: var(--accent); }
+  .zoom-row { display: flex; align-items: center; gap: 8px; }
+  .zoom-row input[type=range] { flex: 1; }
+  .sq { width: 30px; padding: 0; }
+
+  .manager { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; }
+  .mgr-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .mgr-head h3 { font-size: 16px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 7px; }
+  .mgr-head .search { flex: 1; min-width: 180px; }
+  .mgr-head select { width: auto; }
+  .bm-row { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--border); }
+  .bm-row:last-child { border-bottom: none; }
+  .bm-row .ti-bookmark { font-size: 18px; color: var(--text-2); }
+  .bm-meta { flex: 1; min-width: 0; }
+  .bm-meta .name { font-size: 14px; font-weight: 600; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bm-meta .url { font-size: 12px; color: var(--text-3); margin: 0; font-family: ui-monospace, Menlo, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pill { font-size: 11px; padding: 3px 9px; border-radius: 9px; white-space: nowrap; }
+  .pill.f-active { background: var(--success-bg); color: var(--success); }
+  .pill.f-done { background: #eeedfe; color: #3c3489; }
+  .pill.f-none { background: #f1efe8; color: #444441; }
+  .bm-last { font-size: 12px; color: var(--text-2); min-width: 76px; text-align: right; }
+  .bm-count { font-size: 12px; color: var(--text-3); min-width: 42px; text-align: right; }
+  .act { font-size: 16px; color: var(--text-3); cursor: pointer; }
+  .act:hover { color: var(--text); }
+  .mgr-foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .mgr-foot label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); cursor: pointer; }
+  .note { font-size: 12px; color: var(--text-3); }
+  .toast { margin-left: auto; font-size: 12.5px; color: var(--success); opacity: 0; transition: opacity .3s; }
+  .toast.show { opacity: 1; }
+  .empty { text-align: center; color: var(--text-3); font-size: 13px; padding: 24px 0; }
+
+  .settings { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; display: flex; gap: 32px; flex-wrap: wrap; }
+  .settings .grp p { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
+  .settings label { display: flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--text-2); margin-bottom: 6px; cursor: pointer; }
+  footer.note-f { margin-top: 48px; font-size: 12.5px; color: var(--text-3); border-top: 1px solid var(--border); padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="site">
+    <h1><i class="ti ti-bookmark" style="color:var(--accent)"></i> Axure Link Hub</h1>
+    <span class="ver">prototype · v0.3.0 規劃對應</span>
+  </header>
+  <p class="lede">三個核心畫面的可互動原型。第 1 區「加入」的書籤會即時出現在第 3 區管理頁;「匯出 bookmarks.html」會實際下載可匯入 Safari 的書籤檔。</p>
+
+  <h2 class="sec"><span class="num">1</span>偵測提示卡片(M1,預設模式)</h2>
+  <div class="stage">
+    <div class="browser">
+      <div class="browser-bar">
+        <span class="dot" style="background:#e24b4a"></span>
+        <span class="dot" style="background:#ef9f27"></span>
+        <span class="dot" style="background:#639922"></span>
+        <div class="urlbar">https://abc123.axshare.com/#id=h0m3&amp;p=home</div>
+      </div>
+      <div class="viewport">
+        <div class="wire">
+          <div class="side">
+            <div class="wf" style="height:9px;width:72%"></div>
+            <div class="wf" style="height:9px;width:88%"></div>
+            <div class="wf" style="height:9px;width:60%"></div>
+            <div class="wf" style="height:9px;width:78%"></div>
+            <div class="wf" style="height:9px;width:66%"></div>
+          </div>
+          <div class="main">
+            <div class="wf" style="height:26px;width:42%"></div>
+            <div class="wf" style="height:84px"></div>
+            <div class="row">
+              <div class="wf" style="height:36px;flex:1"></div>
+              <div class="wf" style="height:36px;flex:1"></div>
+              <div class="wf" style="height:36px;flex:1"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="prompt-card" id="prompt-card">
+          <div class="head">
+            <i class="ti ti-bookmark"></i>
+            <b>加入 Axure 書籤?</b>
+            <i class="ti ti-x close" id="card-close" title="收合(badge 仍會提示)"></i>
+          </div>
+          <label class="f">名稱(自動偵測,可修改)</label>
+          <input type="text" id="bm-name" class="mb10" value="電商 App 改版 v3" />
+          <label class="f">分組</label>
+          <select id="bm-folder" class="mb12">
+            <option>進行中</option>
+            <option>已交付</option>
+            <option selected>未分類</option>
+            <option value="__new">＋ 新增分組…</option>
+          </select>
+          <div class="row">
+            <button class="primary" style="flex:1" id="bm-add">加入</button>
+            <button style="flex:1" id="bm-skip">略過</button>
+          </div>
+          <span class="ignore-link" id="bm-ignore">不再提醒此專案</span>
+        </div>
+        <div class="done-card" id="prompt-done" style="display:none">
+          <i class="ti ti-check"></i> <span id="done-msg"></span>
+          <span style="display:block;margin-top:6px;text-decoration:underline;cursor:pointer;font-size:12px" id="reset-demo">重播 demo</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="sec"><span class="num">2</span>badge 模式(M3,設定切換)— 圖示亮 +,點開 popup 才出現加入區塊</h2>
+  <div class="stage badge-demo">
+    <div style="text-align:center">
+      <div class="toolbar-icon">
+        <i class="ti ti-arrows-maximize"></i>
+        <span class="badge">+</span>
+      </div>
+      <p style="font-size:12px;color:var(--text-2);margin:8px 0 0">工具列圖示</p>
+    </div>
+    <div class="popup">
+      <div class="add-block">
+        <p><i class="ti ti-bookmark"></i> 偵測到新 Axure 專案</p>
+        <input type="text" value="電商 App 改版 v3" class="mb10" style="height:32px;font-size:13px" />
+        <div class="row">
+          <button class="primary" style="flex:1;height:30px;font-size:12.5px">加入書籤</button>
+          <button style="flex:1;height:30px;font-size:12.5px">略過</button>
+        </div>
+      </div>
+      <p style="font-size:13.5px;font-weight:600;margin:0 0 10px">Axure 縮放</p>
+      <div class="zoom-row">
+        <button class="sq">−</button>
+        <input type="range" min="50" max="200" step="10" value="100" id="zoom" />
+        <button class="sq">+</button>
+        <span style="font-size:13px;min-width:42px;text-align:right" id="zoom-val">100%</span>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="sec"><span class="num">3</span>書籤管理頁(M2,options page)</h2>
+  <div class="manager">
+    <div class="mgr-head">
+      <h3><i class="ti ti-folder"></i> Axure 連結管理</h3>
+      <input type="text" class="search" id="mgr-search" placeholder="搜尋名稱或網址…" />
+      <select id="mgr-filter">
+        <option value="">全部分組</option>
+        <option>進行中</option>
+        <option>已交付</option>
+        <option>未分類</option>
+      </select>
+    </div>
+    <div id="mgr-list"></div>
+    <div class="mgr-foot">
+      <button id="export-btn"><i class="ti ti-download"></i> 匯出 bookmarks.html</button>
+      <label><input type="checkbox" id="sync-toggle" /> 同步到 Chrome 書籤</label>
+      <span class="note" id="sync-note">Safari 不支援 bookmarks API,請改用匯出</span>
+      <span class="toast" id="toast"></span>
+    </div>
+  </div>
+
+  <h2 class="sec"><span class="num">4</span>設定(M3)</h2>
+  <div class="settings">
+    <div class="grp">
+      <p>偵測提示方式</p>
+      <label><input type="radio" name="pmode" checked /> 頁面內浮動卡片(預設)</label>
+      <label><input type="radio" name="pmode" /> 僅圖示 badge,點開 popup 才提示</label>
+    </div>
+    <div class="grp">
+      <p>已忽略的專案</p>
+      <label style="cursor:default"><span class="pill f-none">axshare:old9z7</span> <span class="act ti ti-arrow-back-up" title="復原" style="font-size:15px"></span></label>
+      <label style="cursor:default"><span class="pill f-none">file:…/legacy-demo</span> <span class="act ti ti-arrow-back-up" title="復原" style="font-size:15px"></span></label>
+    </div>
+  </div>
+
+  <footer class="note-f">
+    互動皆為模擬,無真實瀏覽器 API。對應規劃文件:docs/plan-axure-link-hub.md ·
+    去重以專案(projectKey)為單位 · Chrome 同步為單向 push · Safari 端以匯出 bookmarks.html 進真實書籤。
+  </footer>
+</div>
+
+<script>
+var bms = [
+  { name: "後台 Dashboard 原型", key: "axshare:x9k2m1", url: "https://x9k2m1.axshare.com", folder: "進行中", last: "3 天前", n: 11 },
+  { name: "會員系統 Flow", key: "cloud:proj-5512", url: "https://app.axure.cloud/app/project/5512", folder: "已交付", last: "2026/05/30", n: 7 },
+  { name: "本機匯出:結帳流程", key: "file:…/checkout", url: "file:///Users/jason/proto/checkout/index.html", folder: "未分類", last: "2026/05/12", n: 3 }
+];
+var pillClass = { "進行中": "f-active", "已交付": "f-done", "未分類": "f-none" };
+
+function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+
+function render() {
+  var q = document.getElementById("mgr-search").value.toLowerCase();
+  var f = document.getElementById("mgr-filter").value;
+  var el = document.getElementById("mgr-list");
+  el.innerHTML = "";
+  var rows = bms.filter(function (b) {
+    return (!f || b.folder === f) && (!q || b.name.toLowerCase().indexOf(q) >= 0 || b.url.toLowerCase().indexOf(q) >= 0);
+  });
+  if (!rows.length) { el.innerHTML = '<p class="empty">沒有符合的書籤</p>'; return; }
+  rows.forEach(function (b) {
+    var row = document.createElement("div");
+    row.className = "bm-row";
+    row.innerHTML =
+      '<i class="ti ti-bookmark"></i>' +
+      '<div class="bm-meta"><p class="name">' + esc(b.name) + '</p><p class="url">' + esc(b.url) + '</p></div>' +
+      '<span class="pill ' + (pillClass[b.folder] || "f-none") + '">' + esc(b.folder) + '</span>' +
+      '<span class="bm-last">' + b.last + '</span>' +
+      '<span class="bm-count">' + b.n + ' 次</span>' +
+      '<i class="ti ti-external-link act" title="開啟"></i>' +
+      '<i class="ti ti-edit act edit" title="改名"></i>' +
+      '<i class="ti ti-trash act del" title="刪除"></i>';
+    row.querySelector(".del").addEventListener("click", function () {
+      bms = bms.filter(function (x) { return x.key !== b.key; });
+      render(); toast("已刪除「" + b.name + "」");
+    });
+    row.querySelector(".edit").addEventListener("click", function () {
+      var nv = prompt("修改書籤名稱:", b.name);
+      if (nv) { b.name = nv; render(); }
+    });
+    el.appendChild(row);
+  });
+}
+
+function toast(m) {
+  var t = document.getElementById("toast");
+  t.textContent = m; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove("show"); }, 2600);
+}
+
+document.getElementById("mgr-search").addEventListener("input", render);
+document.getElementById("mgr-filter").addEventListener("change", render);
+
+document.getElementById("export-btn").addEventListener("click", function () {
+  var lines = ['<!DOCTYPE NETSCAPE-Bookmark-file-1>', '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">', '<TITLE>Bookmarks</TITLE>', '<H1>Bookmarks</H1>', '<DL><p>', '  <DT><H3>Axure</H3>', '  <DL><p>'];
+  var folders = {};
+  bms.forEach(function (b) { (folders[b.folder] = folders[b.folder] || []).push(b); });
+  Object.keys(folders).forEach(function (f) {
+    lines.push('    <DT><H3>' + esc(f) + '</H3>');
+    lines.push('    <DL><p>');
+    folders[f].forEach(function (b) { lines.push('      <DT><A HREF="' + esc(b.url) + '">' + esc(b.name) + '</A>'); });
+    lines.push('    </DL><p>');
+  });
+  lines.push('  </DL><p>', '</DL><p>');
+  var blob = new Blob([lines.join("\n")], { type: "text/html" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "axure-bookmarks.html";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("已下載 axure-bookmarks.html,可從 Safari「檔案 > 匯入」加入真實書籤");
+});
+
+document.getElementById("sync-toggle").addEventListener("change", function (e) {
+  document.getElementById("sync-note").textContent = e.target.checked
+    ? "Chrome:將單向寫入「書籤列 / Axure」資料夾(模擬)"
+    : "Safari 不支援 bookmarks API,請改用匯出";
+});
+
+function dismiss(msg) {
+  document.getElementById("prompt-card").style.display = "none";
+  document.getElementById("done-msg").textContent = msg;
+  document.getElementById("prompt-done").style.display = "block";
+}
+document.getElementById("bm-add").addEventListener("click", function () {
+  var sel = document.getElementById("bm-folder");
+  var folder = sel.value === "__new" ? (prompt("新分組名稱:") || "未分類") : sel.value;
+  bms.unshift({ name: document.getElementById("bm-name").value || "未命名", key: "axshare:abc123", url: "https://abc123.axshare.com", folder: folder, last: "剛剛", n: 1 });
+  if (!pillClass[folder]) pillClass[folder] = "f-none";
+  dismiss("已加入書籤,見下方管理頁");
+  render();
+});
+document.getElementById("bm-skip").addEventListener("click", function () { dismiss("已略過,本次 session 不再詢問"); });
+document.getElementById("bm-ignore").addEventListener("click", function () { dismiss("已永久忽略此專案,設定頁可復原"); });
+document.getElementById("card-close").addEventListener("click", function () { dismiss("已收合(實際版本中 badge 仍會亮起)"); });
+document.getElementById("reset-demo").addEventListener("click", function () {
+  bms = bms.filter(function (b) { return b.key !== "axshare:abc123"; });
+  document.getElementById("prompt-done").style.display = "none";
+  document.getElementById("prompt-card").style.display = "block";
+  render();
+});
+
+var zoom = document.getElementById("zoom");
+zoom.addEventListener("input", function () { document.getElementById("zoom-val").textContent = zoom.value + "%"; });
+
+render();
+</script>
+</body>
+</html>
