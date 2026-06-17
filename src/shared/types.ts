@@ -43,7 +43,9 @@ export type RuntimeMessage =
   | { type: 'BOOKMARK_GET_FOLDERS' }
   | { type: 'BOOKMARK_ADD_FOLDER'; name: string }
   | { type: 'BOOKMARK_RENAME_FOLDER'; name: string; newName: string }
-  | { type: 'BOOKMARK_REMOVE_FOLDER'; name: string };
+  | { type: 'BOOKMARK_REMOVE_FOLDER'; name: string }
+  | { type: 'SETTINGS_GET' }
+  | { type: 'SETTINGS_SET'; settings: Settings };
 
 export type RuntimeResponse =
   | {
@@ -53,6 +55,7 @@ export type RuntimeResponse =
       bookmark?: AxureBookmark | null;
       ignored?: string[];
       folders?: string[];
+      settings?: Settings;
     }
   | { ok: false; error: string };
 
@@ -99,9 +102,14 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
     candidate.type === 'BOOKMARK_GET_ALL' ||
     candidate.type === 'BOOKMARK_DETECTED' ||
     candidate.type === 'BOOKMARK_GET_IGNORED' ||
-    candidate.type === 'BOOKMARK_GET_FOLDERS'
+    candidate.type === 'BOOKMARK_GET_FOLDERS' ||
+    candidate.type === 'SETTINGS_GET'
   ) {
     return true;
+  }
+
+  if (candidate.type === 'SETTINGS_SET') {
+    return typeof candidate.settings === 'object' && candidate.settings !== null;
   }
 
   if (candidate.type === 'BOOKMARK_ADD') {

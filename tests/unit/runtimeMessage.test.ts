@@ -25,6 +25,10 @@ describe('isRuntimeMessage', () => {
     expect(isRuntimeMessage({ type: 'BOOKMARK_ADD_FOLDER', name: 'WIP' })).toBe(true);
     expect(isRuntimeMessage({ type: 'BOOKMARK_RENAME_FOLDER', name: 'a', newName: 'b' })).toBe(true);
     expect(isRuntimeMessage({ type: 'BOOKMARK_REMOVE_FOLDER', name: 'a' })).toBe(true);
+    expect(isRuntimeMessage({ type: 'SETTINGS_GET' })).toBe(true);
+    expect(
+      isRuntimeMessage({ type: 'SETTINGS_SET', settings: { promptMode: 'badge', chromeSync: { enabled: false, parentFolderId: null } } })
+    ).toBe(true);
   });
 
   it('rejects bookmark messages missing required fields', () => {
@@ -35,6 +39,7 @@ describe('isRuntimeMessage', () => {
     expect(isRuntimeMessage({ type: 'BOOKMARK_SET_FOLDER', projectKey: 'a' })).toBe(false);
     expect(isRuntimeMessage({ type: 'BOOKMARK_ADD_FOLDER' })).toBe(false);
     expect(isRuntimeMessage({ type: 'BOOKMARK_RENAME_FOLDER', name: 'a' })).toBe(false);
+    expect(isRuntimeMessage({ type: 'SETTINGS_SET' })).toBe(false);
     expect(isRuntimeMessage({ type: 'NOPE' })).toBe(false);
     expect(isRuntimeMessage(null)).toBe(false);
   });

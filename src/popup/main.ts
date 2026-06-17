@@ -424,6 +424,9 @@ async function addCurrentTab(): Promise<void> {
   });
 
   if (response.ok) {
+    if (tabId !== null) {
+      chrome.action.setBadgeText({ tabId, text: '' }); // badge 模式收藏後清除「＋」
+    }
     await loadBookmarks();
   }
 }

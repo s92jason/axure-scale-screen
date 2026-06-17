@@ -1,5 +1,5 @@
 import { toNetscapeBookmarks } from '../shared/netscape';
-import type { AxureBookmark, RuntimeMessage, RuntimeResponse } from '../shared/types';
+import type { AxureBookmark, RuntimeMessage, RuntimeResponse, Settings } from '../shared/types';
 
 const FILTER_ALL = '__all__';
 const FILTER_NONE = '__none__';
@@ -25,10 +25,12 @@ const newFolderEl = must<HTMLInputElement>('#newFolder');
 const addFolderEl = must<HTMLButtonElement>('#addFolder');
 const folderListEl = must<HTMLUListElement>('#folderList');
 const folderEmptyEl = must<HTMLParagraphElement>('#folderEmpty');
+const promptModeEl = must<HTMLSelectElement>('#promptMode');
 
 let bookmarks: AxureBookmark[] = [];
 let ignored: string[] = [];
 let folders: string[] = [];
+let settings: Settings = { promptMode: 'card', chromeSync: { enabled: false, parentFolderId: null } };
 
 function send(message: RuntimeMessage): Promise<RuntimeResponse> {
   return new Promise((resolve) => {
@@ -186,14 +188,19 @@ function renderFolders(): void {
 }
 
 async function load(): Promise<void> {
-  const [all, ign, fld] = await Promise.all([
+  const [all, ign, fld, set] = await Promise.all([
     send({ type: 'BOOKMARK_GET_ALL' }),
     send({ type: 'BOOKMARK_GET_IGNORED' }),
-    send({ type: 'BOOKMARK_GET_FOLDERS' })
+    send({ type: 'BOOKMARK_GET_FOLDERS' }),
+    send({ type: 'SETTINGS_GET' })
   ]);
   bookmarks = all.ok && all.bookmarks ? all.bookmarks : [];
   ignored = ign.ok && ign.ignored ? ign.ignored : [];
   folders = fld.ok && fld.folders ? fld.folders : [];
+  if (set.ok && set.settings) {
+    settings = set.settings;
+  }
+  promptModeEl.value = settings.promptMode;
   renderFilterOptions();
   render();
   renderFolders();
@@ -291,6 +298,10 @@ newFolderEl.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') {
     void addFolderUI();
   }
+});
+promptModeEl.addEventListener('change', () => {
+  settings = { ...settings, promptMode: promptModeEl.value === 'badge' ? 'badge' : 'card' };
+  void send({ type: 'SETTINGS_SET', settings });
 });
 
 void load();

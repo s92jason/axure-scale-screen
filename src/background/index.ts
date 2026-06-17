@@ -5,6 +5,7 @@ import {
   getBookmark,
   getFolders,
   getIgnored,
+  getSettings,
   ignoreBookmark,
   isIgnored,
   recordVisit,
@@ -13,6 +14,7 @@ import {
   renameBookmark,
   renameFolder,
   setFolder,
+  setSettings,
   unignoreProject
 } from '../shared/bookmarkStore';
 import { toProjectKey } from '../shared/projectKey';
@@ -160,6 +162,14 @@ async function handleDetected(sender: chrome.runtime.MessageSender): Promise<voi
   }
   recentPrompts.set(guardKey, now);
 
+  // badge 模式：不彈卡片，只在工具列圖示顯示「＋」提示有可收藏的專案。
+  const settings = await getSettings();
+  if (settings.promptMode === 'badge') {
+    chrome.action.setBadgeText({ tabId, text: '＋' });
+    void chrome.action.setBadgeBackgroundColor?.({ tabId, color: '#0a84ff' });
+    return;
+  }
+
   // 命名優先序：Axure 專案名 → 分頁標題(排除 Untitled) → host。
   let name = (await readProjectName(tabId)) ?? '';
   if (!name) {
@@ -185,6 +195,13 @@ async function handleDetected(sender: chrome.runtime.MessageSender): Promise<voi
     }
   );
 }
+
+// badge 模式：頁面開始導航時清掉舊的「＋」，新頁若仍可收藏會由偵測重新設定。
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.status === 'loading') {
+    chrome.action.setBadgeText({ tabId, text: '' });
+  }
+});
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!isRuntimeMessage(message)) {
@@ -275,6 +292,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case 'BOOKMARK_REMOVE_FOLDER': {
           await removeFolder(message.name);
           sendResponse({ ok: true, folders: await getFolders() });
+          return;
+        }
+        case 'SETTINGS_GET': {
+          sendResponse({ ok: true, settings: await getSettings() });
+          return;
+        }
+        case 'SETTINGS_SET': {
+          await setSettings(message.settings);
+          sendResponse({ ok: true });
           return;
         }
         default: {
