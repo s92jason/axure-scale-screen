@@ -106,35 +106,21 @@ export function isEditableTarget(target: EventTarget | null): boolean {
 export function getShortcutDelta(event: KeyboardEvent): number | null {
   const code = event.code;
 
-  // Fallback set for Safari/keyboard-layout conflicts.
-  if (event.altKey && event.shiftKey && !event.metaKey && !event.ctrlKey) {
-    if (code === 'ArrowUp') {
+  // 主快捷鍵：Cmd/Ctrl + Option + =/-/0。
+  // 刻意避開原生縮放的保留鍵 Cmd +/-（Safari 攔不住、chrome.commands 也不收 +/-）。
+  // 用 event.code（實體鍵位）而非 event.key：按住 Option 時 Mac 的 key 會變成 ≠ / – 等特殊字元。
+  if ((event.metaKey || event.ctrlKey) && event.altKey && !event.shiftKey) {
+    if (code === 'Equal' || code === 'NumpadAdd') {
       return ZOOM_STEP;
     }
 
-    if (code === 'ArrowDown') {
+    if (code === 'Minus' || code === 'NumpadSubtract') {
       return -ZOOM_STEP;
     }
 
     if (code === 'Digit0' || code === 'Numpad0') {
       return 0;
     }
-  }
-
-  if (!(event.metaKey || event.ctrlKey) || event.altKey) {
-    return null;
-  }
-
-  if (code === 'Equal' || code === 'NumpadAdd' || event.key === '+' || event.key === '=') {
-    return ZOOM_STEP;
-  }
-
-  if (code === 'Minus' || code === 'NumpadSubtract' || event.key === '-') {
-    return -ZOOM_STEP;
-  }
-
-  if (code === 'Digit0' || code === 'Numpad0' || event.key === '0') {
-    return 0;
   }
 
   return null;

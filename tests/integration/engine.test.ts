@@ -70,19 +70,23 @@ describe('content engine', () => {
     expect(isEditableTarget(div)).toBe(false);
   });
 
-  it('maps keyboard shortcuts to zoom actions', () => {
-    const zoomIn = new KeyboardEvent('keydown', { key: '+', ctrlKey: true });
-    const zoomOut = new KeyboardEvent('keydown', { key: '-', metaKey: true });
-    const reset = new KeyboardEvent('keydown', { key: '0', metaKey: true });
-    const fallbackIn = new KeyboardEvent('keydown', { code: 'ArrowUp', altKey: true, shiftKey: true });
-    const fallbackOut = new KeyboardEvent('keydown', { code: 'ArrowDown', altKey: true, shiftKey: true });
-    const fallbackReset = new KeyboardEvent('keydown', { code: 'Digit0', altKey: true, shiftKey: true });
+  it('maps Cmd/Ctrl+Option+=/-/0 to zoom actions (by physical code)', () => {
+    const zoomIn = new KeyboardEvent('keydown', { code: 'Equal', metaKey: true, altKey: true });
+    const zoomOut = new KeyboardEvent('keydown', { code: 'Minus', ctrlKey: true, altKey: true });
+    const reset = new KeyboardEvent('keydown', { code: 'Digit0', metaKey: true, altKey: true });
 
     expect(getShortcutDelta(zoomIn)).toBe(10);
     expect(getShortcutDelta(zoomOut)).toBe(-10);
     expect(getShortcutDelta(reset)).toBe(0);
-    expect(getShortcutDelta(fallbackIn)).toBe(10);
-    expect(getShortcutDelta(fallbackOut)).toBe(-10);
-    expect(getShortcutDelta(fallbackReset)).toBe(0);
+  });
+
+  it('does not intercept native zoom (Cmd +/- without Option) so the browser keeps it', () => {
+    expect(getShortcutDelta(new KeyboardEvent('keydown', { code: 'Equal', metaKey: true }))).toBeNull();
+    expect(getShortcutDelta(new KeyboardEvent('keydown', { code: 'Minus', metaKey: true }))).toBeNull();
+    expect(getShortcutDelta(new KeyboardEvent('keydown', { code: 'Digit0', metaKey: true }))).toBeNull();
+  });
+
+  it('ignores Option+=/- without Cmd/Ctrl', () => {
+    expect(getShortcutDelta(new KeyboardEvent('keydown', { code: 'Equal', altKey: true }))).toBeNull();
   });
 });

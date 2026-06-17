@@ -28,13 +28,16 @@
   },
   "commands": {
     "zoom-in": {
-      "description": "放大 Axure 內容"
+      "description": "放大 Axure 內容",
+      "suggested_key": { "default": "Ctrl+Shift+Up", "mac": "Command+Shift+Up" }
     },
     "zoom-out": {
-      "description": "縮小 Axure 內容"
+      "description": "縮小 Axure 內容",
+      "suggested_key": { "default": "Ctrl+Shift+Down", "mac": "Command+Shift+Down" }
     },
     "zoom-reset": {
-      "description": "重置 Axure 縮放"
+      "description": "重置 Axure 縮放",
+      "suggested_key": { "default": "Ctrl+Shift+0", "mac": "Command+Shift+0" }
     }
   },
   "background": {
