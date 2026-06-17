@@ -1,9 +1,13 @@
 import {
   addBookmark,
   getAllBookmarks,
+  getBookmark,
+  ignoreProject,
+  isIgnored,
   recordVisit,
   removeBookmark
 } from '../shared/bookmarkStore';
+import { toProjectKey } from '../shared/projectKey';
 import { getZoomState, resetZoomState, setZoomState } from '../shared/storage';
 import { isRuntimeMessage } from '../shared/types';
 
@@ -74,7 +78,107 @@ async function dispatchShortcutCommand(command: string): Promise<void> {
   await Promise.all(frameIds.map((frameId) => sendMessageToFrame(tabId, frameId, COMMAND_TO_MESSAGE[typedCommand])));
 }
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+// 同一分頁同專案在短時間內的重複偵測去重(多 frame 會各觸發一次)。
+const recentPrompts = new Map<string, number>();
+const PROMPT_DEDUP_MS = 5000;
+
+// 讀取 Axure 專案名稱：$axure.document.configuration.projectName 在頁面 main world，
+// content script(isolated world)讀不到，改由 background 用 world:'MAIN' 注入讀取。
+// Safari 16.4+ 支援 world:'MAIN'，但回傳值與 Chrome 不同(直接給值，非 InjectionResult)，兩種都處理。
+async function readProjectName(tabId: number): Promise<string | null> {
+  if (!chrome.scripting?.executeScript) {
+    return null;
+  }
+
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId, allFrames: true },
+      world: 'MAIN',
+      func: () => {
+        try {
+          const runtime = window as unknown as {
+            $axure?: { document?: { configuration?: { projectName?: unknown } } };
+          };
+          const projectName = runtime.$axure?.document?.configuration?.projectName;
+          return typeof projectName === 'string' ? projectName : null;
+        } catch {
+          return null;
+        }
+      }
+    });
+
+    for (const item of results as unknown[]) {
+      const value =
+        typeof item === 'object' && item !== null && 'result' in item
+          ? (item as { result: unknown }).result
+          : item;
+      if (typeof value === 'string' && value.trim()) {
+        return value.trim();
+      }
+    }
+  } catch {
+    // world:'MAIN' 不被支援或注入失敗時，回退到下方命名邏輯。
+  }
+
+  return null;
+}
+
+// 偵測到 Axure 頁時，以 sender.tab 的「頂層分頁 URL」算 projectKey，
+// 去重/ignore 後，把提示卡片轉發給頂層 frame(frameId 0)顯示。
+async function handleDetected(sender: chrome.runtime.MessageSender): Promise<void> {
+  const tab = sender.tab;
+  const tabUrl = tab?.url;
+  const tabId = tab?.id;
+  if (!tabUrl || typeof tabId !== 'number') {
+    return;
+  }
+
+  const projectKey = toProjectKey(tabUrl);
+  if (!projectKey) {
+    return;
+  }
+
+  const [existing, ignored] = await Promise.all([getBookmark(projectKey), isIgnored(projectKey)]);
+  if (existing || ignored) {
+    return;
+  }
+
+  // 去重：同一分頁同專案在短時間內可能由多個 frame 各觸發一次偵測，只彈一次卡片。
+  const guardKey = `${tabId}:${projectKey}`;
+  const now = Date.now();
+  const last = recentPrompts.get(guardKey);
+  if (last !== undefined && now - last < PROMPT_DEDUP_MS) {
+    return;
+  }
+  recentPrompts.set(guardKey, now);
+
+  // 命名優先序：Axure 專案名 → 分頁標題(排除 Untitled) → host。
+  let name = (await readProjectName(tabId)) ?? '';
+  if (!name) {
+    const title = tab?.title?.trim() ?? '';
+    if (title && !/^untitled\b/i.test(title)) {
+      name = title;
+    }
+  }
+  if (!name) {
+    try {
+      name = new URL(tabUrl).hostname;
+    } catch {
+      name = projectKey;
+    }
+  }
+
+  chrome.tabs.sendMessage(
+    tabId,
+    { type: 'CONTENT_SHOW_PROMPT', projectKey, name, url: tabUrl },
+    { frameId: 0 },
+    () => {
+      void chrome.runtime.lastError; // 頂層 frame 沒有 content script 時忽略
+    }
+  );
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!isRuntimeMessage(message)) {
     return;
   }
@@ -115,6 +219,16 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         }
         case 'BOOKMARK_RECORD_VISIT': {
           await recordVisit(message.projectKey);
+          sendResponse({ ok: true });
+          return;
+        }
+        case 'BOOKMARK_DETECTED': {
+          await handleDetected(sender);
+          sendResponse({ ok: true });
+          return;
+        }
+        case 'BOOKMARK_IGNORE': {
+          await ignoreProject(message.projectKey);
           sendResponse({ ok: true });
           return;
         }

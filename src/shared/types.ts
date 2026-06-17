@@ -33,7 +33,9 @@ export type RuntimeMessage =
   | { type: 'BOOKMARK_GET_ALL' }
   | { type: 'BOOKMARK_ADD'; projectKey: string; name: string; url: string; folder?: string }
   | { type: 'BOOKMARK_REMOVE'; projectKey: string }
-  | { type: 'BOOKMARK_RECORD_VISIT'; projectKey: string };
+  | { type: 'BOOKMARK_RECORD_VISIT'; projectKey: string }
+  | { type: 'BOOKMARK_DETECTED' } // 由 content 送出，background 以 sender.tab 算 projectKey
+  | { type: 'BOOKMARK_IGNORE'; projectKey: string };
 
 export type RuntimeResponse =
   | { ok: true; state?: ZoomState | null; bookmarks?: AxureBookmark[]; bookmark?: AxureBookmark | null }
@@ -45,7 +47,8 @@ export type ContentMessage =
   | { type: 'CONTENT_RESET_ZOOM' }
   | { type: 'CONTENT_SHORTCUT_IN' }
   | { type: 'CONTENT_SHORTCUT_OUT' }
-  | { type: 'CONTENT_SHORTCUT_RESET' };
+  | { type: 'CONTENT_SHORTCUT_RESET' }
+  | { type: 'CONTENT_SHOW_PROMPT'; projectKey: string; name: string; url: string };
 
 export type ContentResponse =
   | {
@@ -77,7 +80,7 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
     return isNonEmptyString(candidate.urlKey) && typeof candidate.zoom === 'number';
   }
 
-  if (candidate.type === 'BOOKMARK_GET_ALL') {
+  if (candidate.type === 'BOOKMARK_GET_ALL' || candidate.type === 'BOOKMARK_DETECTED') {
     return true;
   }
 
@@ -85,7 +88,11 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
     return isNonEmptyString(candidate.projectKey) && isNonEmptyString(candidate.name) && isNonEmptyString(candidate.url);
   }
 
-  if (candidate.type === 'BOOKMARK_REMOVE' || candidate.type === 'BOOKMARK_RECORD_VISIT') {
+  if (
+    candidate.type === 'BOOKMARK_REMOVE' ||
+    candidate.type === 'BOOKMARK_RECORD_VISIT' ||
+    candidate.type === 'BOOKMARK_IGNORE'
+  ) {
     return isNonEmptyString(candidate.projectKey);
   }
 

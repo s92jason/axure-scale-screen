@@ -3,6 +3,7 @@ import type { ContentMessage, ContentResponse, RuntimeMessage, RuntimeResponse, 
 import { toUrlKey } from '../shared/url';
 import { adjustZoom, toZoomLevel } from '../shared/zoom';
 import { applyZoom, findAxureRoot, getShortcutDelta, isEditableTarget, isLikelyAxureDocument, resetZoom } from './engine';
+import { showPromptCard } from './promptCard';
 
 interface ContentState {
   isAxure: boolean;
@@ -202,6 +203,27 @@ function handlePopupMessages(): void {
       return true;
     }
 
+    if (typedMessage.type === 'CONTENT_SHOW_PROMPT') {
+      // 僅頂層 frame 顯示卡片(background 已只送 frameId 0，這裡再保險一次)。
+      if (window.top === window.self) {
+        const { projectKey, name, url } = typedMessage;
+        showPromptCard({
+          name,
+          onAdd: (editedName) => {
+            void sendRuntimeMessage({ type: 'BOOKMARK_ADD', projectKey, name: editedName, url });
+          },
+          onSkip: () => {
+            /* 本次略過：僅關閉卡片 */
+          },
+          onIgnore: () => {
+            void sendRuntimeMessage({ type: 'BOOKMARK_IGNORE', projectKey });
+          }
+        });
+      }
+      respond({ ok: true, data: { isAxure: state.isAxure, urlKey: state.urlKey, zoom: state.zoom } });
+      return;
+    }
+
     respond({ ok: false, error: 'Unknown content message' });
     return;
   });
@@ -218,6 +240,11 @@ async function bootstrap(): Promise<void> {
   if (state.root) {
     await initializeFromStorage();
     applyCurrentZoom();
+  }
+
+  // F1：偵測到 Axure 即通知 background，由它去重後決定是否在頂層 frame 顯示提示卡片。
+  if (state.isAxure) {
+    void sendRuntimeMessage({ type: 'BOOKMARK_DETECTED' });
   }
 
   window.addEventListener('resize', () => {
