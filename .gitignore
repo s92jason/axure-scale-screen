@@ -7,3 +7,8 @@ coverage
 *.xcuserstate
 xcuserdata/
 .claude/settings.local.json
+
+# 由 scripts/convert-to-safari-app.sh 從 dist 重新產生，不進版
+.ai-artifacts/
+axure-scale-screen-extention.zip
+safari-app/
