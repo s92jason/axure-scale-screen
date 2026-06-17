@@ -1,11 +1,19 @@
 import {
   addBookmark,
+  addFolder,
   getAllBookmarks,
   getBookmark,
-  ignoreProject,
+  getFolders,
+  getIgnored,
+  ignoreBookmark,
   isIgnored,
   recordVisit,
-  removeBookmark
+  removeBookmark,
+  removeFolder,
+  renameBookmark,
+  renameFolder,
+  setFolder,
+  unignoreProject
 } from '../shared/bookmarkStore';
 import { toProjectKey } from '../shared/projectKey';
 import { getZoomState, resetZoomState, setZoomState } from '../shared/storage';
@@ -228,8 +236,45 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           return;
         }
         case 'BOOKMARK_IGNORE': {
-          await ignoreProject(message.projectKey);
+          await ignoreBookmark(message.projectKey);
           sendResponse({ ok: true });
+          return;
+        }
+        case 'BOOKMARK_RENAME': {
+          await renameBookmark(message.projectKey, message.name);
+          sendResponse({ ok: true });
+          return;
+        }
+        case 'BOOKMARK_SET_FOLDER': {
+          await setFolder(message.projectKey, message.folder);
+          sendResponse({ ok: true });
+          return;
+        }
+        case 'BOOKMARK_GET_IGNORED': {
+          sendResponse({ ok: true, ignored: await getIgnored() });
+          return;
+        }
+        case 'BOOKMARK_UNIGNORE': {
+          await unignoreProject(message.projectKey);
+          sendResponse({ ok: true });
+          return;
+        }
+        case 'BOOKMARK_GET_FOLDERS': {
+          sendResponse({ ok: true, folders: await getFolders() });
+          return;
+        }
+        case 'BOOKMARK_ADD_FOLDER': {
+          sendResponse({ ok: true, folders: await addFolder(message.name) });
+          return;
+        }
+        case 'BOOKMARK_RENAME_FOLDER': {
+          await renameFolder(message.name, message.newName);
+          sendResponse({ ok: true, folders: await getFolders() });
+          return;
+        }
+        case 'BOOKMARK_REMOVE_FOLDER': {
+          await removeFolder(message.name);
+          sendResponse({ ok: true, folders: await getFolders() });
           return;
         }
         default: {

@@ -1,14 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  DEFAULT_FOLDERS,
   addBookmark,
+  addFolder,
   getAllBookmarks,
   getBookmark,
+  getFolders,
   getSettings,
+  ignoreBookmark,
   ignoreProject,
   isIgnored,
   recordVisit,
   removeBookmark,
+  removeFolder,
   renameBookmark,
+  renameFolder,
   setFolder,
   unignoreProject
 } from '../../src/shared/bookmarkStore';
@@ -98,5 +104,40 @@ describe('bookmarkStore', () => {
     const settings = await getSettings();
     expect(settings.promptMode).toBe('card');
     expect(settings.chromeSync.enabled).toBe(false);
+  });
+
+  it('seeds default folders on first read', async () => {
+    expect(await getFolders()).toEqual(DEFAULT_FOLDERS);
+  });
+
+  it('adds a folder without duplicating', async () => {
+    await addFolder('新組');
+    await addFolder('新組');
+    const folders = await getFolders();
+    expect(folders.filter((f) => f === '新組')).toHaveLength(1);
+  });
+
+  it('renames a folder and updates bookmarks using it', async () => {
+    await addFolder('舊');
+    await addBookmark({ projectKey: 'k', name: 'n', url: 'u', folder: '舊' });
+    await renameFolder('舊', '新');
+    expect(await getFolders()).toContain('新');
+    expect(await getFolders()).not.toContain('舊');
+    expect((await getBookmark('k'))?.folder).toBe('新');
+  });
+
+  it('removes a folder and sends its bookmarks back to ungrouped', async () => {
+    await addFolder('暫存');
+    await addBookmark({ projectKey: 'k', name: 'n', url: 'u', folder: '暫存' });
+    await removeFolder('暫存');
+    expect(await getFolders()).not.toContain('暫存');
+    expect((await getBookmark('k'))?.folder).toBe('');
+  });
+
+  it('ignoreBookmark removes the bookmark and adds to ignore list', async () => {
+    await addBookmark({ projectKey: 'k', name: 'n', url: 'u' });
+    await ignoreBookmark('k');
+    expect(await getBookmark('k')).toBeNull();
+    expect(await isIgnored('k')).toBe(true);
   });
 });

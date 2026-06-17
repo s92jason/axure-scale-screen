@@ -1,0 +1,92 @@
+:root {
+  color-scheme: light dark;
+  --text: rgba(0, 0, 0, 0.85);
+  --text-muted: rgba(0, 0, 0, 0.5);
+  --bg: #f5f5f7;
+  --card: #ffffff;
+  --line: rgba(0, 0, 0, 0.1);
+  --accent: #0a84ff;
+  --danger: #d9362b;
+  --pill: rgba(0, 0, 0, 0.06);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: rgba(255, 255, 255, 0.9);
+    --text-muted: rgba(255, 255, 255, 0.5);
+    --bg: #1c1c1e;
+    --card: #2c2c2e;
+    --line: rgba(255, 255, 255, 0.14);
+    --accent: #4aa3ff;
+    --danger: #ff6961;
+    --pill: rgba(255, 255, 255, 0.1);
+  }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-size: 14px; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
+
+.head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; }
+h2 { font-size: 14px; font-weight: 600; color: var(--text-muted); margin: 28px 0 10px; }
+
+.btn {
+  font: inherit; cursor: pointer; border: 1px solid var(--line); border-radius: 8px;
+  padding: 7px 12px; background: var(--card); color: var(--text);
+}
+.btn.primary { background: var(--accent); color: #fff; border-color: transparent; }
+.btn:hover { filter: brightness(0.97); }
+
+.toolbar { display: flex; gap: 8px; margin-bottom: 14px; }
+.toolbar input, .toolbar select {
+  font: inherit; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--card); color: var(--text);
+}
+.toolbar input { flex: 1; }
+
+.list { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; }
+.list th, .list td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.list th { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+.list tr:last-child td { border-bottom: 0; }
+.list .num { text-align: right; }
+.list td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.link { font: inherit; background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; text-align: left; }
+.link:hover { text-decoration: underline; }
+
+.actions { white-space: nowrap; text-align: right; }
+.act {
+  font: inherit; font-size: 12px; cursor: pointer; margin-left: 6px;
+  border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; background: var(--card); color: var(--text);
+}
+.act:hover { background: var(--pill); }
+.act.danger { color: var(--danger); }
+
+.empty { color: var(--text-muted); padding: 16px 4px; }
+
+.folder-select {
+  font: inherit; font-size: 13px; padding: 4px 8px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--text);
+  max-width: 160px;
+}
+
+.folder-add { display: flex; gap: 8px; margin-bottom: 12px; }
+.folder-add input {
+  font: inherit; flex: 1; max-width: 280px; padding: 7px 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text);
+}
+
+.folder-list { list-style: none; margin: 0; padding: 0; }
+.folder-list li {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 6px;
+}
+.folder-name { font-size: 13px; }
+
+.ignored-list { list-style: none; margin: 0; padding: 0; }
+.ignored-list li {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 6px;
+}
+.ignored-list span { color: var(--text-muted); font-size: 13px; word-break: break-all; }

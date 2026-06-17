@@ -44,6 +44,10 @@ const bmSearch = bmSearchEl;
 const bmList = bmListEl;
 const bmEmpty = bmEmptyEl;
 
+document.querySelector<HTMLButtonElement>('#bmManage')?.addEventListener('click', () => {
+  chrome.runtime.openOptionsPage();
+});
+
 let tabId: number | null = null;
 let activeFrameId: number | null = null;
 let isAxurePage = false;

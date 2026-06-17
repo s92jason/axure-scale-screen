@@ -35,10 +35,25 @@ export type RuntimeMessage =
   | { type: 'BOOKMARK_REMOVE'; projectKey: string }
   | { type: 'BOOKMARK_RECORD_VISIT'; projectKey: string }
   | { type: 'BOOKMARK_DETECTED' } // 由 content 送出，background 以 sender.tab 算 projectKey
-  | { type: 'BOOKMARK_IGNORE'; projectKey: string };
+  | { type: 'BOOKMARK_IGNORE'; projectKey: string }
+  | { type: 'BOOKMARK_RENAME'; projectKey: string; name: string }
+  | { type: 'BOOKMARK_SET_FOLDER'; projectKey: string; folder: string }
+  | { type: 'BOOKMARK_GET_IGNORED' }
+  | { type: 'BOOKMARK_UNIGNORE'; projectKey: string }
+  | { type: 'BOOKMARK_GET_FOLDERS' }
+  | { type: 'BOOKMARK_ADD_FOLDER'; name: string }
+  | { type: 'BOOKMARK_RENAME_FOLDER'; name: string; newName: string }
+  | { type: 'BOOKMARK_REMOVE_FOLDER'; name: string };
 
 export type RuntimeResponse =
-  | { ok: true; state?: ZoomState | null; bookmarks?: AxureBookmark[]; bookmark?: AxureBookmark | null }
+  | {
+      ok: true;
+      state?: ZoomState | null;
+      bookmarks?: AxureBookmark[];
+      bookmark?: AxureBookmark | null;
+      ignored?: string[];
+      folders?: string[];
+    }
   | { ok: false; error: string };
 
 export type ContentMessage =
@@ -80,7 +95,12 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
     return isNonEmptyString(candidate.urlKey) && typeof candidate.zoom === 'number';
   }
 
-  if (candidate.type === 'BOOKMARK_GET_ALL' || candidate.type === 'BOOKMARK_DETECTED') {
+  if (
+    candidate.type === 'BOOKMARK_GET_ALL' ||
+    candidate.type === 'BOOKMARK_DETECTED' ||
+    candidate.type === 'BOOKMARK_GET_IGNORED' ||
+    candidate.type === 'BOOKMARK_GET_FOLDERS'
+  ) {
     return true;
   }
 
@@ -88,10 +108,27 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
     return isNonEmptyString(candidate.projectKey) && isNonEmptyString(candidate.name) && isNonEmptyString(candidate.url);
   }
 
+  if (candidate.type === 'BOOKMARK_ADD_FOLDER' || candidate.type === 'BOOKMARK_REMOVE_FOLDER') {
+    return isNonEmptyString(candidate.name);
+  }
+
+  if (candidate.type === 'BOOKMARK_RENAME_FOLDER') {
+    return isNonEmptyString(candidate.name) && isNonEmptyString(candidate.newName);
+  }
+
+  if (candidate.type === 'BOOKMARK_RENAME') {
+    return isNonEmptyString(candidate.projectKey) && isNonEmptyString(candidate.name);
+  }
+
+  if (candidate.type === 'BOOKMARK_SET_FOLDER') {
+    return isNonEmptyString(candidate.projectKey) && typeof candidate.folder === 'string';
+  }
+
   if (
     candidate.type === 'BOOKMARK_REMOVE' ||
     candidate.type === 'BOOKMARK_RECORD_VISIT' ||
-    candidate.type === 'BOOKMARK_IGNORE'
+    candidate.type === 'BOOKMARK_IGNORE' ||
+    candidate.type === 'BOOKMARK_UNIGNORE'
   ) {
     return isNonEmptyString(candidate.projectKey);
   }

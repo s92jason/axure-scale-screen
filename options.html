@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Axure 書籤管理</title>
+    <link rel="stylesheet" href="/src/options/style.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="head">
+        <h1>Axure 書籤管理</h1>
+        <button id="export" class="btn primary" type="button">匯出 bookmarks.html</button>
+      </header>
+
+      <div class="toolbar">
+        <input id="search" type="search" placeholder="搜尋名稱或分組…" />
+        <select id="folder" aria-label="分組篩選"><option value="">全部分組</option></select>
+        <select id="sort" aria-label="排序">
+          <option value="recent">最近開啟</option>
+          <option value="name">名稱</option>
+          <option value="count">開啟次數</option>
+        </select>
+      </div>
+
+      <table class="list">
+        <thead>
+          <tr>
+            <th>名稱</th>
+            <th>分組</th>
+            <th>最後開啟</th>
+            <th class="num">次數</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <p id="empty" class="empty" hidden>尚無書籤。在 Axure 原型頁用浮動卡片或 popup 的「收藏此頁」加入。</p>
+
+      <section class="folders">
+        <h2>分組管理</h2>
+        <div class="folder-add">
+          <input id="newFolder" type="text" placeholder="新增分組…" />
+          <button id="addFolder" class="btn" type="button">新增</button>
+        </div>
+        <ul id="folderList" class="folder-list"></ul>
+        <p id="folderEmpty" class="empty" hidden>尚無分組。</p>
+      </section>
+
+      <section class="ignored">
+        <h2>已忽略的專案</h2>
+        <ul id="ignoredList" class="ignored-list"></ul>
+        <p id="ignoredEmpty" class="empty" hidden>沒有被忽略的專案。</p>
+      </section>
+    </main>
+    <script type="module" src="/src/options/main.ts"></script>
+  </body>
+</html>

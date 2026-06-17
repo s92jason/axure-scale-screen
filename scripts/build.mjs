@@ -7,7 +7,7 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(scriptDir, '..');
 const distDir = resolve(rootDir, 'dist');
 
-async function buildPopup() {
+async function buildPages() {
   await build({
     configFile: false,
     root: rootDir,
@@ -16,7 +16,8 @@ async function buildPopup() {
       emptyOutDir: true,
       rollupOptions: {
         input: {
-          popup: resolve(rootDir, 'popup.html')
+          popup: resolve(rootDir, 'popup.html'),
+          options: resolve(rootDir, 'options.html')
         },
         output: {
           entryFileNames: 'assets/[name]-[hash].js',
@@ -72,7 +73,7 @@ async function buildContent() {
 }
 
 async function main() {
-  await buildPopup();
+  await buildPages();
   await buildBackground();
   await buildContent();
   cpSync(resolve(rootDir, 'src/manifest.json'), resolve(distDir, 'manifest.json'));
