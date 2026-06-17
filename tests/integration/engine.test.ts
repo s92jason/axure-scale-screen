@@ -74,10 +74,13 @@ describe('content engine', () => {
     const zoomIn = new KeyboardEvent('keydown', { code: 'Equal', metaKey: true, altKey: true });
     const zoomOut = new KeyboardEvent('keydown', { code: 'Minus', ctrlKey: true, altKey: true });
     const reset = new KeyboardEvent('keydown', { code: 'Digit0', metaKey: true, altKey: true });
+    // 放大鍵也接受 + (Shift+=)，讓 popup 提示的「⌘⌥ +」確實可用
+    const zoomInPlus = new KeyboardEvent('keydown', { code: 'Equal', metaKey: true, altKey: true, shiftKey: true });
 
     expect(getShortcutDelta(zoomIn)).toBe(10);
     expect(getShortcutDelta(zoomOut)).toBe(-10);
     expect(getShortcutDelta(reset)).toBe(0);
+    expect(getShortcutDelta(zoomInPlus)).toBe(10);
   });
 
   it('does not intercept native zoom (Cmd +/- without Option) so the browser keeps it', () => {
