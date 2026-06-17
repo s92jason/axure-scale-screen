@@ -19,7 +19,100 @@ import {
 } from '../shared/bookmarkStore';
 import { toProjectKey } from '../shared/projectKey';
 import { getZoomState, resetZoomState, setZoomState } from '../shared/storage';
+import { planSync } from '../shared/syncPlan';
 import { isRuntimeMessage } from '../shared/types';
+
+// ── Chrome 真實書籤同步(單向 push：plugin → Chrome 書籤) ──────────
+// Safari 沒有 chrome.bookmarks，全程 feature-detect；失敗不影響其他功能。
+const SYNC_FOLDER_TITLE = 'Axure 書籤';
+let syncing = false;
+
+function bmGetChildren(id: string): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
+  return new Promise((resolve) => {
+    chrome.bookmarks.getChildren(id, (nodes) => {
+      void chrome.runtime.lastError;
+      resolve(nodes ?? []);
+    });
+  });
+}
+
+function bmCreate(arg: chrome.bookmarks.CreateDetails): Promise<chrome.bookmarks.BookmarkTreeNode | null> {
+  return new Promise((resolve) => {
+    chrome.bookmarks.create(arg, (node) => {
+      void chrome.runtime.lastError;
+      resolve(node ?? null);
+    });
+  });
+}
+
+function bmRemoveTree(id: string): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.bookmarks.removeTree(id, () => {
+      void chrome.runtime.lastError;
+      resolve();
+    });
+  });
+}
+
+// 回傳實際寫入的書籤筆數；錯誤往外丟(由呼叫端決定要回報還是忽略)。
+async function syncToChrome(): Promise<number> {
+  if (typeof chrome.bookmarks === 'undefined') {
+    throw new Error('此瀏覽器不支援書籤同步');
+  }
+  if (syncing) {
+    return 0;
+  }
+  const settings = await getSettings();
+  const parentId = settings.chromeSync.parentFolderId;
+  if (!settings.chromeSync.enabled || !parentId) {
+    return 0;
+  }
+
+  syncing = true;
+  try {
+    // 在目標資料夾下維護一個專屬「Axure 書籤」資料夾，每次重建它的內容(單向覆寫)。
+    const siblings = await bmGetChildren(parentId);
+    let folder = siblings.find((node) => !node.url && node.title === SYNC_FOLDER_TITLE) ?? null;
+    if (folder) {
+      const children = await bmGetChildren(folder.id);
+      for (const child of children) {
+        await bmRemoveTree(child.id);
+      }
+    } else {
+      folder = await bmCreate({ parentId, title: SYNC_FOLDER_TITLE });
+    }
+    if (!folder) {
+      throw new Error('無法建立同步資料夾');
+    }
+
+    const plan = planSync(await getAllBookmarks());
+    let count = 0;
+    for (const bm of plan.ungrouped) {
+      await bmCreate({ parentId: folder.id, title: bm.name || bm.projectKey, url: bm.url });
+      count += 1;
+    }
+    for (const group of plan.groups) {
+      const sub = await bmCreate({ parentId: folder.id, title: group.name });
+      if (!sub) {
+        continue;
+      }
+      for (const bm of group.items) {
+        await bmCreate({ parentId: sub.id, title: bm.name || bm.projectKey, url: bm.url });
+        count += 1;
+      }
+    }
+    return count;
+  } finally {
+    syncing = false;
+  }
+}
+
+// 自動同步(資料異動後)：失敗就靜默忽略，不打擾使用者。
+function maybeSync(): void {
+  void syncToChrome().catch(() => {
+    /* 自動同步失敗忽略 */
+  });
+}
 
 const COMMAND_TO_MESSAGE = {
   'zoom-in': { type: 'CONTENT_SHORTCUT_IN' },
@@ -235,11 +328,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             folder: message.folder
           });
           sendResponse({ ok: true, bookmark });
+          maybeSync();
           return;
         }
         case 'BOOKMARK_REMOVE': {
           await removeBookmark(message.projectKey);
           sendResponse({ ok: true });
+          maybeSync();
           return;
         }
         case 'BOOKMARK_RECORD_VISIT': {
@@ -255,16 +350,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case 'BOOKMARK_IGNORE': {
           await ignoreBookmark(message.projectKey);
           sendResponse({ ok: true });
+          maybeSync();
           return;
         }
         case 'BOOKMARK_RENAME': {
           await renameBookmark(message.projectKey, message.name);
           sendResponse({ ok: true });
+          maybeSync();
           return;
         }
         case 'BOOKMARK_SET_FOLDER': {
           await setFolder(message.projectKey, message.folder);
           sendResponse({ ok: true });
+          maybeSync();
           return;
         }
         case 'BOOKMARK_GET_IGNORED': {
@@ -287,11 +385,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case 'BOOKMARK_RENAME_FOLDER': {
           await renameFolder(message.name, message.newName);
           sendResponse({ ok: true, folders: await getFolders() });
+          maybeSync();
           return;
         }
         case 'BOOKMARK_REMOVE_FOLDER': {
           await removeFolder(message.name);
           sendResponse({ ok: true, folders: await getFolders() });
+          maybeSync();
           return;
         }
         case 'SETTINGS_GET': {
@@ -301,6 +401,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case 'SETTINGS_SET': {
           await setSettings(message.settings);
           sendResponse({ ok: true });
+          maybeSync();
+          return;
+        }
+        case 'SYNC_NOW': {
+          sendResponse({ ok: true, syncedCount: await syncToChrome() });
           return;
         }
         default: {

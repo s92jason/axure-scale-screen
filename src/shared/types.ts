@@ -45,7 +45,8 @@ export type RuntimeMessage =
   | { type: 'BOOKMARK_RENAME_FOLDER'; name: string; newName: string }
   | { type: 'BOOKMARK_REMOVE_FOLDER'; name: string }
   | { type: 'SETTINGS_GET' }
-  | { type: 'SETTINGS_SET'; settings: Settings };
+  | { type: 'SETTINGS_SET'; settings: Settings }
+  | { type: 'SYNC_NOW' };
 
 export type RuntimeResponse =
   | {
@@ -56,6 +57,7 @@ export type RuntimeResponse =
       ignored?: string[];
       folders?: string[];
       settings?: Settings;
+      syncedCount?: number;
     }
   | { ok: false; error: string };
 
@@ -103,7 +105,8 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
     candidate.type === 'BOOKMARK_DETECTED' ||
     candidate.type === 'BOOKMARK_GET_IGNORED' ||
     candidate.type === 'BOOKMARK_GET_FOLDERS' ||
-    candidate.type === 'SETTINGS_GET'
+    candidate.type === 'SETTINGS_GET' ||
+    candidate.type === 'SYNC_NOW'
   ) {
     return true;
   }

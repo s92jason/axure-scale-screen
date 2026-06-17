@@ -92,6 +92,33 @@ h2 { font-size: 14px; font-weight: 600; color: var(--text-muted); margin: 28px 0
   font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px;
   background: var(--bg); color: var(--text);
 }
+.setting-row small { color: var(--text-muted); font-size: 11.5px; }
+.switch-label { white-space: nowrap; }
+.sync-controls { display: flex; gap: 8px; align-items: center; }
+.sync-controls select { max-width: 220px; }
+
+/* 資料夾選擇器（檔案對話框風格） */
+.picker {
+  margin-top: 8px; padding: 12px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+}
+.picker-pathbar { display: flex; gap: 8px; margin-bottom: 8px; }
+.picker-pathbar input {
+  font: inherit; flex: 1; padding: 7px 10px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--text);
+}
+.picker-tree {
+  list-style: none; margin: 0 0 8px; padding: 4px;
+  max-height: 220px; overflow-y: auto;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--bg);
+}
+.picker-row {
+  padding: 5px 8px; border-radius: 5px; cursor: pointer; font-size: 13px; white-space: nowrap;
+}
+.picker-row:hover { background: var(--pill); }
+.picker-row.selected { background: var(--accent); color: #fff; }
+.picker-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.picker-note { color: var(--text-muted); font-size: 11.5px; }
 
 .ignored-list { list-style: none; margin: 0; padding: 0; }
 .ignored-list li {

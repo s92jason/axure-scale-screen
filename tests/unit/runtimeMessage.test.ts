@@ -29,6 +29,7 @@ describe('isRuntimeMessage', () => {
     expect(
       isRuntimeMessage({ type: 'SETTINGS_SET', settings: { promptMode: 'badge', chromeSync: { enabled: false, parentFolderId: null } } })
     ).toBe(true);
+    expect(isRuntimeMessage({ type: 'SYNC_NOW' })).toBe(true);
   });
 
   it('rejects bookmark messages missing required fields', () => {

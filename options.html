@@ -56,6 +56,35 @@
             <option value="badge">只在工具列圖示顯示「＋」（不彈卡片）</option>
           </select>
         </label>
+
+        <div id="syncSection" hidden>
+          <div class="setting-row">
+            <span>Chrome 真實書籤同步<br /><small>單向：外掛 → Chrome 書籤</small></span>
+            <label class="switch-label"><input type="checkbox" id="syncEnabled" /> 啟用</label>
+          </div>
+          <div class="setting-row" id="syncDetail" hidden>
+            <span>同步位置<br /><small id="syncLocation"></small></span>
+            <span class="sync-controls">
+              <button id="syncChange" class="btn" type="button">變更…</button>
+              <button id="syncNow" class="btn" type="button">立即同步</button>
+            </span>
+          </div>
+          <div id="syncPicker" class="picker" hidden>
+            <div class="picker-pathbar">
+              <input id="pickerPath" type="text" placeholder="輸入路徑，例如 書籤列/設計（不存在會自動建立）" />
+              <button id="pickerNewFolder" class="btn" type="button">＋ 新增資料夾</button>
+            </div>
+            <ul id="pickerTree" class="picker-tree"></ul>
+            <div class="picker-actions">
+              <small class="picker-note">會在所選位置下自動建立並維護「Axure 書籤」資料夾。</small>
+              <span>
+                <button id="pickerCancel" class="btn" type="button">取消</button>
+                <button id="pickerConfirm" class="btn primary" type="button">確定</button>
+              </span>
+            </div>
+          </div>
+          <p id="syncNote" class="empty" hidden></p>
+        </div>
       </section>
 
       <section class="ignored">
