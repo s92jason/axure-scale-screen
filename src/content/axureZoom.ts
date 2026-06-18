@@ -246,10 +246,17 @@ async function bootstrap(): Promise<void> {
   handleShortcuts();
 
   const foundRoot = findAxureRoot();
-  state.root = foundRoot;
-  state.isAxure = isLikelyAxureDocument(foundRoot);
+  const isAxure = isLikelyAxureDocument(foundRoot);
 
-  if (state.root) {
+  // 只有「確認是 Axure 文件」時才保留 root 並套用縮放。
+  // 否則 root 維持 null —— 避免在任何含通用 selector(#base / #main_container 等)的
+  // 非 Axure 頁面上 reparent DOM：ensureScaleWrapper 會插入 position:relative 的
+  // 包裹層，改變 containing block 而破壞無關網站的版面。content script 跑在
+  // all_frames + <all_urls>，故此 gate 是必要的防線(原本誤用 if (state.root))。
+  state.isAxure = isAxure;
+  state.root = isAxure ? foundRoot : null;
+
+  if (state.isAxure) {
     await initializeFromStorage();
     applyCurrentZoom();
   }
