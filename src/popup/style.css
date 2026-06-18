@@ -433,3 +433,33 @@ kbd {
   padding: 1px 5px;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
 }
+
+/* ═══════════════════════════════════════════
+   Side panel variant (Chrome Side Panel)
+   填滿側欄寬高、無浮動圓角/陰影、清單自然展開
+═══════════════════════════════════════════ */
+body.sidepanel {
+  width: auto;
+  min-height: 100vh;
+  background:
+    radial-gradient(130% 90% at 0% 0%, rgba(110, 150, 255, 0.12), transparent 55%),
+    linear-gradient(180deg, #eef1f8 0%, #e9e7f5 100%);
+}
+body.sidepanel .panel {
+  border-radius: 0;
+  min-height: 100vh;
+  box-shadow: none;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+body.sidepanel .panel::before { display: none; }
+body.sidepanel .bm-list { max-height: none; } /* 側欄高，書籤清單自然展開、整欄捲動 */
+
+@media (prefers-color-scheme: dark) {
+  body.sidepanel {
+    background:
+      radial-gradient(130% 90% at 0% 0%, rgba(90, 130, 230, 0.16), transparent 55%),
+      linear-gradient(180deg, #181a24 0%, #1f1b2c 100%);
+  }
+}

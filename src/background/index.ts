@@ -451,3 +451,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 chrome.commands.onCommand.addListener((command) => {
   void dispatchShortcutCommand(command);
 });
+
+// ── Chrome Side Panel ──────────────────────────────────────────
+// Chrome 主流改用側欄(Side Panel)呈現：點工具列圖示直接開側欄，取代 popup。
+// 做法：偵測到 chrome.sidePanel 時，讓點擊 action 開側欄，並清掉 action 的
+// popup(否則點圖示會優先顯示 popup 而非側欄)。
+// Safari 沒有 chrome.sidePanel → 整段跳過 → 維持 manifest 的 default_popup(popup) 行為。
+function setupSidePanel(): void {
+  if (!chrome.sidePanel?.setPanelBehavior) {
+    return;
+  }
+  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {
+    /* 不支援或失敗時忽略，維持預設行為 */
+  });
+  chrome.action.setPopup({ popup: '' }); // 清掉 popup，點圖示才會開側欄
+}
+
+setupSidePanel();
+chrome.runtime.onInstalled.addListener(() => setupSidePanel());

@@ -17,6 +17,7 @@ async function buildPages() {
       rollupOptions: {
         input: {
           popup: resolve(rootDir, 'popup.html'),
+          sidepanel: resolve(rootDir, 'sidepanel.html'),
           options: resolve(rootDir, 'options.html')
         },
         output: {

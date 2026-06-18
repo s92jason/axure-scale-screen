@@ -1,4 +1,4 @@
-import { DEFAULT_ZOOM, MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from '../shared/constants';
+import { DEFAULT_ZOOM, MAX_ZOOM, MIN_ZOOM, STORAGE_PREFIX, ZOOM_STEP } from '../shared/constants';
 import { toProjectKey } from '../shared/projectKey';
 import type {
   AxureBookmark,
@@ -52,6 +52,9 @@ const STATE_ICONS = {
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>',
   star: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 4l2.1 4.6 5 .5-3.8 3.4 1.1 4.9L12 15.8 7.6 17.9l1.1-4.9L4.9 9.6l5-.5z"/></svg>'
 } as const;
+
+// 書籤資料的 storage key 前綴(items/folders/ignored/settings 皆以此開頭)。
+const BM_DATA_PREFIX = `${STORAGE_PREFIX}bm::`;
 
 type StatusTone = '' | 'is-amber' | 'is-grey' | 'is-loading';
 
@@ -370,10 +373,18 @@ async function applyZoomFromInput(rawZoom: number): Promise<void> {
   setStatus('', `已記住此頁 ${response.data.zoom}%`);
 }
 
+// 側欄(Side Panel)情境下 currentWindow 不一定對應到瀏覽器視窗，
+// 改以 lastFocusedWindow 為主、currentWindow 為退路；popup 與側欄皆可正確取得作用中分頁。
 function queryActiveTab(): Promise<chrome.tabs.Tab | null> {
   return new Promise((resolve) => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      resolve(tabs[0] ?? null);
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+      if (tabs[0]) {
+        resolve(tabs[0]);
+        return;
+      }
+      chrome.tabs.query({ active: true, currentWindow: true }, (fallback) => {
+        resolve(fallback[0] ?? null);
+      });
     });
   });
 }
@@ -553,17 +564,12 @@ function bindEvents(): void {
   });
 }
 
-async function bootstrap(): Promise<void> {
-  setControlsDisabled(true);
-  bindEvents();
-
+async function loadActiveTab(): Promise<void> {
   const tab = await queryActiveTab();
   tabId = tab?.id ?? null;
   currentTabUrl = tab?.url ?? null;
   currentTabTitle = tab?.title ?? '';
   currentProjectKey = currentTabUrl ? toProjectKey(currentTabUrl) : null;
-
-  void loadBookmarks();
 
   if (tabId === null) {
     showStateCard({
@@ -579,6 +585,36 @@ async function bootstrap(): Promise<void> {
 
   setStatus('is-loading', '正在讀取目前分頁…');
   await refreshState();
+}
+
+// 側欄(Chrome Side Panel)會常駐：切換分頁時更新縮放/收藏狀態，書籤資料變動時刷新清單。
+// popup 開啟即關，這些監聽不會影響其行為。
+let activeTabReloadTimer: number | undefined;
+function scheduleActiveTabReload(): void {
+  window.clearTimeout(activeTabReloadTimer);
+  activeTabReloadTimer = window.setTimeout(() => void loadActiveTab(), 120);
+}
+
+function bindLiveUpdates(): void {
+  chrome.tabs.onActivated.addListener(() => scheduleActiveTabReload());
+  chrome.tabs.onUpdated.addListener((updatedTabId, info) => {
+    if (updatedTabId === tabId && (info.status === 'complete' || typeof info.url === 'string')) {
+      scheduleActiveTabReload();
+    }
+  });
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && Object.keys(changes).some((key) => key.startsWith(BM_DATA_PREFIX))) {
+      void loadBookmarks();
+    }
+  });
+}
+
+async function bootstrap(): Promise<void> {
+  setControlsDisabled(true);
+  bindEvents();
+  bindLiveUpdates();
+  void loadBookmarks();
+  await loadActiveTab();
 }
 
 void bootstrap();
