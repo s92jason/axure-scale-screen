@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Axure Scale Screen",
+    "description": "Extension name shown in browser stores and extension managers."
+  },
+  "extensionShortName": {
+    "message": "Axure Scale",
+    "description": "Short extension name for compact browser surfaces."
+  },
+  "extensionDescription": {
+    "message": "Zoom, bookmark, group, and export Axure prototypes in Chrome and Safari Web Extension.",
+    "description": "Extension description shown in browser stores and extension managers."
+  }
+}

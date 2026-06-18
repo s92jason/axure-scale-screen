@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Axure Scale Screen",
+    "description": "Extension name shown in browser stores and extension managers."
+  },
+  "extensionShortName": {
+    "message": "Axure Scale",
+    "description": "Short extension name for compact browser surfaces."
+  },
+  "extensionDescription": {
+    "message": "讓 Axure 原型更容易縮放、收藏、分組與匯出，支援 Chrome 與 Safari Web Extension。",
+    "description": "Extension description shown in browser stores and extension managers."
+  }
+}
