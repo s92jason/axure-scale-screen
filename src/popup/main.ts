@@ -8,45 +8,62 @@ import type {
   RuntimeResponse,
   ZoomLevel
 } from '../shared/types';
+import { toEntryUrl } from '../shared/url';
 import { adjustZoom, toZoomLevel } from '../shared/zoom';
 
-const statusEl = document.querySelector<HTMLParagraphElement>('#status');
-const siteMetaEl = document.querySelector<HTMLParagraphElement>('#siteMeta');
-const rangeEl = document.querySelector<HTMLInputElement>('#zoomRange');
-const valueEl = document.querySelector<HTMLOutputElement>('#zoomValue');
-const zoomInEl = document.querySelector<HTMLButtonElement>('#zoomIn');
-const zoomOutEl = document.querySelector<HTMLButtonElement>('#zoomOut');
-const resetEl = document.querySelector<HTMLButtonElement>('#reset');
-
-if (!statusEl || !siteMetaEl || !rangeEl || !valueEl || !zoomInEl || !zoomOutEl || !resetEl) {
-  throw new Error('找不到 Popup 必要的 UI 元件');
+function must<T extends HTMLElement>(selector: string): T {
+  const el = document.querySelector<T>(selector);
+  if (!el) {
+    throw new Error(`找不到 Popup 必要的 UI 元件：${selector}`);
+  }
+  return el;
 }
 
-const status = statusEl;
-const siteMeta = siteMetaEl;
-const range = rangeEl;
-const value = valueEl;
-const zoomIn = zoomInEl;
-const zoomOut = zoomOutEl;
-const reset = resetEl;
+const status = must<HTMLParagraphElement>('#status');
+const statusTxt = must<HTMLSpanElement>('#status .status-txt');
+const range = must<HTMLInputElement>('#zoomRange');
+const value = must<HTMLOutputElement>('#zoomValue');
+const zoomIn = must<HTMLButtonElement>('#zoomIn');
+const zoomOut = must<HTMLButtonElement>('#zoomOut');
+const reset = must<HTMLButtonElement>('#reset');
 
-const bmAddEl = document.querySelector<HTMLButtonElement>('#bmAdd');
-const bmSearchEl = document.querySelector<HTMLInputElement>('#bmSearch');
-const bmListEl = document.querySelector<HTMLUListElement>('#bmList');
-const bmEmptyEl = document.querySelector<HTMLParagraphElement>('#bmEmpty');
+const zoomLive = must<HTMLDivElement>('#zoomLive');
+const stateCard = must<HTMLDivElement>('#stateCard');
+const stateIcon = must<HTMLDivElement>('#stateIcon');
+const stateTitle = must<HTMLHeadingElement>('#stateTitle');
+const stateBody = must<HTMLParagraphElement>('#stateBody');
+const statePrimary = must<HTMLButtonElement>('#statePrimary');
 
-if (!bmAddEl || !bmSearchEl || !bmListEl || !bmEmptyEl) {
-  throw new Error('找不到 Popup 書籤區的 UI 元件');
-}
+const bmAdd = must<HTMLButtonElement>('#bmAdd');
+const bmSearch = must<HTMLInputElement>('#bmSearch');
+const bmList = must<HTMLUListElement>('#bmList');
+const bmEmpty = must<HTMLParagraphElement>('#bmEmpty');
 
-const bmAdd = bmAddEl;
-const bmSearch = bmSearchEl;
-const bmList = bmListEl;
-const bmEmpty = bmEmptyEl;
-
-document.querySelector<HTMLButtonElement>('#bmManage')?.addEventListener('click', () => {
+must<HTMLButtonElement>('#bmManage').addEventListener('click', () => {
   chrome.runtime.openOptionsPage();
 });
+
+const STATE_ICONS = {
+  refresh:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/></svg>',
+  lock:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>',
+  doc:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>',
+  star: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 4l2.1 4.6 5 .5-3.8 3.4 1.1 4.9L12 15.8 7.6 17.9l1.1-4.9L4.9 9.6l5-.5z"/></svg>'
+} as const;
+
+type StatusTone = '' | 'is-amber' | 'is-grey' | 'is-loading';
+
+interface StateCardConfig {
+  iconTone: '' | 'amber' | 'accent';
+  icon: keyof typeof STATE_ICONS;
+  title: string;
+  body: string;
+  statusTone: StatusTone;
+  statusText: string;
+  primary?: { label: string; onClick: () => void };
+}
 
 let tabId: number | null = null;
 let activeFrameId: number | null = null;
@@ -58,30 +75,9 @@ let currentTabTitle = '';
 let currentProjectKey: string | null = null;
 let bookmarks: AxureBookmark[] = [];
 
-function shortenText(input: string, maxLength: number): string {
-  if (input.length <= maxLength) {
-    return input;
-  }
-
-  return `${input.slice(0, maxLength - 1)}…`;
-}
-
-function toDisplayUrl(urlKey: string): string {
-  try {
-    const parsed = new URL(urlKey);
-    return shortenText(`${parsed.hostname}${parsed.pathname}`, 44);
-  } catch {
-    return shortenText(urlKey, 44);
-  }
-}
-
-function updateSavedStateText(urlKey: string): void {
-  status.textContent = '已儲存此頁倍率';
-  siteMeta.textContent = toDisplayUrl(urlKey);
-}
-
-function clearSiteMeta(): void {
-  siteMeta.textContent = '';
+function setStatus(tone: StatusTone, text: string): void {
+  status.className = tone ? `status ${tone}` : 'status';
+  statusTxt.textContent = text;
 }
 
 function setControlsDisabled(disabled: boolean): void {
@@ -89,6 +85,46 @@ function setControlsDisabled(disabled: boolean): void {
   zoomIn.disabled = disabled;
   zoomOut.disabled = disabled;
   reset.disabled = disabled;
+}
+
+function showLive(): void {
+  stateCard.hidden = true;
+  zoomLive.hidden = false;
+  setControlsDisabled(false);
+  updateAddAvailability();
+}
+
+function showStateCard(config: StateCardConfig): void {
+  zoomLive.hidden = true;
+  stateCard.hidden = false;
+  setControlsDisabled(true);
+  bmAdd.disabled = true;
+
+  stateIcon.className = config.iconTone ? `state-ico ${config.iconTone}` : 'state-ico';
+  stateIcon.innerHTML = STATE_ICONS[config.icon];
+  stateTitle.textContent = config.title;
+  stateBody.textContent = config.body;
+  setStatus(config.statusTone, config.statusText);
+
+  if (config.primary) {
+    statePrimary.hidden = false;
+    statePrimary.textContent = config.primary.label;
+    statePrimary.onclick = config.primary.onClick;
+  } else {
+    statePrimary.hidden = true;
+    statePrimary.onclick = null;
+  }
+}
+
+function reloadAndRecheck(): void {
+  if (tabId === null) {
+    return;
+  }
+  chrome.tabs.reload(tabId);
+  setStatus('is-loading', '重新整理中…');
+  window.setTimeout(() => {
+    void refreshState();
+  }, 900);
 }
 
 function updateZoomDisplay(zoom: ZoomLevel): void {
@@ -274,30 +310,49 @@ async function refreshState(): Promise<void> {
   if (!result.ok) {
     activeFrameId = null;
     isAxurePage = false;
-    clearSiteMeta();
 
     if (result.hasAnyContentResponse) {
-      status.textContent = '此頁面未偵測到 Axure 容器。';
-      setControlsDisabled(true);
+      showStateCard({
+        iconTone: '',
+        icon: 'doc',
+        title: '這不是 Axure 原型',
+        body: '縮放功能只在偵測到 Axure 文件容器時生效。你仍然可以從下方書籤直接開啟已收藏的原型。',
+        statusTone: 'is-grey',
+        statusText: '非 Axure 頁面'
+      });
       return;
     }
 
     if (isPermissionError(result.error)) {
-      status.textContent = '目前沒有此網站存取權限，請到 Safari 外掛設定允許此網站後重試。';
-      setControlsDisabled(true);
+      showStateCard({
+        iconTone: 'amber',
+        icon: 'lock',
+        title: '需要存取權限',
+        body: '目前沒有這個網站的存取權限。請到 Safari 外掛設定允許此網域（本機 file:// 檔案需另外允許），再重新整理頁面。',
+        statusTone: 'is-amber',
+        statusText: '需要網站權限',
+        primary: { label: '重新整理頁面', onClick: reloadAndRecheck }
+      });
       return;
     }
 
-    status.textContent = `此分頁尚未準備好 Axure 縮放功能（${result.error}）。請先重新整理頁面，並確認已允許此網站權限。`;
-    setControlsDisabled(true);
+    showStateCard({
+      iconTone: 'amber',
+      icon: 'refresh',
+      title: '尚未準備好',
+      body: '這個分頁的內容腳本還沒回應。請重新整理頁面，安裝或更新外掛後第一次開啟通常需要 reload。',
+      statusTone: 'is-amber',
+      statusText: '需要重新整理',
+      primary: { label: '重新整理頁面', onClick: reloadAndRecheck }
+    });
     return;
   }
 
   activeFrameId = result.frameId;
   isAxurePage = result.response.data.isAxure;
   updateZoomDisplay(result.response.data.zoom);
-  updateSavedStateText(result.response.data.urlKey);
-  setControlsDisabled(false);
+  showLive();
+  setStatus('', `已記住此頁 ${result.response.data.zoom}%`);
 }
 
 async function applyZoomFromInput(rawZoom: number): Promise<void> {
@@ -307,13 +362,12 @@ async function applyZoomFromInput(rawZoom: number): Promise<void> {
 
   const response = await sendToContent({ type: 'CONTENT_SET_ZOOM', zoom: rawZoom }, activeFrameId);
   if (!response.ok) {
-    status.textContent = `失敗：${response.error}`;
-    clearSiteMeta();
+    setStatus('is-amber', '套用縮放失敗');
     return;
   }
 
   updateZoomDisplay(response.data.zoom);
-  updateSavedStateText(response.data.urlKey);
+  setStatus('', `已記住此頁 ${response.data.zoom}%`);
 }
 
 function queryActiveTab(): Promise<chrome.tabs.Tab | null> {
@@ -337,9 +391,22 @@ function sendToBackground(message: RuntimeMessage): Promise<RuntimeResponse> {
   });
 }
 
+function isCurrentBookmarked(): boolean {
+  return currentProjectKey !== null && bookmarks.some((bm) => bm.projectKey === currentProjectKey);
+}
+
 function updateAddAvailability(): void {
-  bmAdd.disabled = currentProjectKey === null;
-  bmAdd.title = currentProjectKey === null ? '目前分頁不是可收藏的 Axure 連結' : '收藏目前的 Axure 專案';
+  const saved = isCurrentBookmarked();
+  const canAdd = currentProjectKey !== null && isAxurePage && !saved;
+  bmAdd.disabled = !canAdd;
+  bmAdd.classList.toggle('is-saved', saved);
+  if (saved) {
+    bmAdd.textContent = '✓ 已收藏';
+    bmAdd.title = '此 Axure 專案已在書籤中';
+  } else {
+    bmAdd.textContent = '＋ 收藏此頁';
+    bmAdd.title = canAdd ? '收藏目前的 Axure 專案' : '目前分頁不是可收藏的 Axure 連結';
+  }
 }
 
 function renderBookmarks(): void {
@@ -362,6 +429,11 @@ function renderBookmarks(): void {
     open.type = 'button';
     open.className = 'bm-open';
     open.title = bm.url;
+
+    const fav = document.createElement('span');
+    fav.className = 'bm-fav';
+    fav.innerHTML = STATE_ICONS.star;
+    open.appendChild(fav);
 
     const name = document.createElement('span');
     name.className = 'bm-name';
@@ -397,10 +469,11 @@ async function loadBookmarks(): Promise<void> {
   const response = await sendToBackground({ type: 'BOOKMARK_GET_ALL' });
   bookmarks = response.ok && response.bookmarks ? response.bookmarks : [];
   renderBookmarks();
+  updateAddAvailability();
 }
 
 async function openBookmark(bm: AxureBookmark): Promise<void> {
-  chrome.tabs.create({ url: bm.url });
+  chrome.tabs.create({ url: toEntryUrl(bm.url) });
   await sendToBackground({ type: 'BOOKMARK_RECORD_VISIT', projectKey: bm.projectKey });
   window.close();
 }
@@ -411,7 +484,7 @@ async function removeBookmarkRow(projectKey: string): Promise<void> {
 }
 
 async function addCurrentTab(): Promise<void> {
-  if (!currentTabUrl || !currentProjectKey) {
+  if (!currentTabUrl || !currentProjectKey || isCurrentBookmarked()) {
     return;
   }
 
@@ -420,7 +493,7 @@ async function addCurrentTab(): Promise<void> {
     type: 'BOOKMARK_ADD',
     projectKey: currentProjectKey,
     name,
-    url: currentTabUrl
+    url: toEntryUrl(currentTabUrl)
   });
 
   if (response.ok) {
@@ -462,13 +535,12 @@ function bindEvents(): void {
 
     void sendToContent({ type: 'CONTENT_RESET_ZOOM' }, activeFrameId).then((response) => {
       if (!response.ok) {
-        status.textContent = `失敗：${response.error}`;
-        clearSiteMeta();
+        setStatus('is-amber', '重置失敗');
         return;
       }
 
       updateZoomDisplay(response.data.zoom);
-      updateSavedStateText(response.data.urlKey);
+      setStatus('', `已記住此頁 ${response.data.zoom}%`);
     });
   });
 
@@ -490,16 +562,22 @@ async function bootstrap(): Promise<void> {
   currentTabUrl = tab?.url ?? null;
   currentTabTitle = tab?.title ?? '';
   currentProjectKey = currentTabUrl ? toProjectKey(currentTabUrl) : null;
-  updateAddAvailability();
 
   void loadBookmarks();
 
   if (tabId === null) {
-    status.textContent = '找不到目前啟用分頁。';
-    clearSiteMeta();
+    showStateCard({
+      iconTone: '',
+      icon: 'doc',
+      title: '找不到分頁',
+      body: '找不到目前啟用的分頁。請切換到要縮放的 Axure 頁面後再開啟。',
+      statusTone: 'is-grey',
+      statusText: '無作用中分頁'
+    });
     return;
   }
 
+  setStatus('is-loading', '正在讀取目前分頁…');
   await refreshState();
 }
 

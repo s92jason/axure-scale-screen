@@ -9,7 +9,31 @@
   <body>
     <main class="wrap">
       <header class="head">
-        <h1>Axure 書籤管理</h1>
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 512 512" fill="none">
+              <defs>
+                <linearGradient id="axB" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#00BFEA" />
+                  <stop offset="1" stop-color="#4B5DD6" />
+                </linearGradient>
+              </defs>
+              <g stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="64">
+                <path d="M96 96 L232 232 L96 368" stroke="url(#axB)" />
+                <path d="M232 232 L368 96" stroke="#7DC340" />
+                <path d="M232 232 L368 368" stroke="#E8187A" />
+              </g>
+              <circle cx="396" cy="396" r="96" fill="#1C1C1E" />
+              <circle cx="360" cy="360" r="22" fill="#fff" />
+              <circle cx="432" cy="432" r="22" fill="#fff" />
+              <path d="M440 352 L352 440" stroke="#fff" stroke-width="24" stroke-linecap="round" />
+            </svg>
+          </span>
+          <div>
+            <h1>Axure 書籤管理</h1>
+            <p class="sub">自動偵測、收藏、分組、匯出與同步你的 Axure 原型連結。</p>
+          </div>
+        </div>
         <button id="export" class="btn primary" type="button">匯出 bookmarks.html</button>
       </header>
 

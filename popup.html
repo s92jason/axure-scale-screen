@@ -9,36 +9,66 @@
   <body>
     <main class="panel">
       <div class="panel-head">
-        <h1>Axure Scale</h1>
-        <p id="status" class="status">正在讀取目前分頁…</p>
-      </div>
-
-      <p id="siteMeta" class="site-meta"></p>
-
-      <div class="zoom-section">
-        <div class="zoom-header-row">
-          <label for="zoomRange">縮放</label>
-          <div class="zoom-val-group">
-            <output id="zoomValue">100</output><span class="zoom-pct">%</span>
-          </div>
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 512 512" fill="none">
+              <defs>
+                <linearGradient id="axB" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#00BFEA" />
+                  <stop offset="1" stop-color="#4B5DD6" />
+                </linearGradient>
+              </defs>
+              <g stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="64">
+                <path d="M96 96 L232 232 L96 368" stroke="url(#axB)" />
+                <path d="M232 232 L368 96" stroke="#7DC340" />
+                <path d="M232 232 L368 368" stroke="#E8187A" />
+              </g>
+              <circle cx="396" cy="396" r="96" fill="#1C1C1E" />
+              <circle cx="360" cy="360" r="22" fill="#fff" />
+              <circle cx="432" cy="432" r="22" fill="#fff" />
+              <path d="M440 352 L352 440" stroke="#fff" stroke-width="24" stroke-linecap="round" />
+            </svg>
+          </span>
+          <h1>Axure Scale</h1>
         </div>
-        <input id="zoomRange" type="range" min="50" max="200" step="10" value="100" />
+        <p id="status" class="status"><span class="dot"></span><span class="status-txt">正在讀取目前分頁…</span></p>
       </div>
 
-      <div class="actions">
-        <button id="zoomOut" type="button">−</button>
-        <button id="reset" type="button">重置</button>
-        <button id="zoomIn" type="button">+</button>
+      <div id="zoomLive" class="zoom-live">
+        <div class="zoom-section">
+          <div class="zoom-header-row">
+            <label for="zoomRange">縮放</label>
+            <div class="zoom-val-group">
+              <output id="zoomValue">100</output><span class="zoom-pct">%</span>
+            </div>
+          </div>
+          <input id="zoomRange" type="range" min="50" max="200" step="10" value="100" />
+        </div>
+
+        <div class="actions">
+          <button id="zoomOut" type="button" class="sym">−</button>
+          <button id="reset" type="button" class="accent">重置</button>
+          <button id="zoomIn" type="button" class="sym">＋</button>
+        </div>
+      </div>
+
+      <div id="stateCard" class="state-card" hidden>
+        <div id="stateIcon" class="state-ico" aria-hidden="true"></div>
+        <h2 id="stateTitle"></h2>
+        <p id="stateBody"></p>
+        <div class="state-actions">
+          <button id="statePrimary" type="button" class="accent block" hidden></button>
+        </div>
       </div>
 
       <section class="bm-section">
         <div class="bm-head">
           <span class="bm-title">書籤</span>
-          <button id="bmAdd" type="button" class="bm-add" disabled>＋ 收藏此頁</button>
+          <button id="bmAdd" type="button" class="bm-add accent" disabled>＋ 收藏此頁</button>
         </div>
         <input id="bmSearch" type="search" class="bm-search" placeholder="搜尋書籤…" hidden />
         <ul id="bmList" class="bm-list"></ul>
-        <p id="bmEmpty" class="bm-empty">尚無書籤，開啟 Axure 原型後按「收藏此頁」。</p>
+        <p id="bmEmpty" class="bm-empty">尚無書籤，開啟 Axure 原型後按「＋ 收藏此頁」。</p>
         <button id="bmManage" type="button" class="bm-manage">管理書籤 →</button>
       </section>
 

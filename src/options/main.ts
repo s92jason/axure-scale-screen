@@ -1,5 +1,6 @@
 import { toNetscapeBookmarks } from '../shared/netscape';
 import type { AxureBookmark, RuntimeMessage, RuntimeResponse, Settings } from '../shared/types';
+import { toEntryUrl } from '../shared/url';
 
 const FILTER_ALL = '__all__';
 const FILTER_NONE = '__none__';
@@ -474,7 +475,7 @@ async function renderSync(): Promise<void> {
 }
 
 async function openBookmark(bm: AxureBookmark): Promise<void> {
-  chrome.tabs.create({ url: bm.url });
+  chrome.tabs.create({ url: toEntryUrl(bm.url) });
   await send({ type: 'BOOKMARK_RECORD_VISIT', projectKey: bm.projectKey });
   await load();
 }
