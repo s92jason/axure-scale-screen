@@ -1,3 +1,4 @@
+import { STORAGE_PREFIX } from '../shared/constants';
 import { toNetscapeBookmarks } from '../shared/netscape';
 import type { AxureBookmark, RuntimeMessage, RuntimeResponse, Settings } from '../shared/types';
 import { toEntryUrl } from '../shared/url';
@@ -618,5 +619,22 @@ async function onToggleSync(): Promise<void> {
   await updateLocationText();
   await runSyncNow();
 }
+
+// 即時同步：popup 或浮動卡片(甚至另一個分頁)改動書籤資料時，
+// 已開啟的管理頁自動重整，不需手動 reload。
+// load() 只讀不寫，不會自我觸發；150ms debounce 把連續多個 key 變動併成一次。
+const BM_STORAGE_PREFIX = `${STORAGE_PREFIX}bm::`;
+let reloadTimer: number | undefined;
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'local') {
+    return;
+  }
+  const touchedBookmarks = Object.keys(changes).some((key) => key.startsWith(BM_STORAGE_PREFIX));
+  if (!touchedBookmarks) {
+    return;
+  }
+  window.clearTimeout(reloadTimer);
+  reloadTimer = window.setTimeout(() => void load(), 150);
+});
 
 void load();
