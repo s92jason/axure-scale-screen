@@ -23,14 +23,26 @@ const state: ContentState = {
 
 function sendRuntimeMessage(message: RuntimeMessage): Promise<RuntimeResponse> {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage(message, (response: RuntimeResponse | undefined) => {
-      if (chrome.runtime.lastError || !response) {
-        resolve({ ok: false, error: chrome.runtime.lastError?.message ?? 'No runtime response' });
-        return;
-      }
+    // 外掛重新載入/更新後，舊頁面殘留的 content script 會進入
+    // 「Extension context invalidated」狀態(chrome.runtime.id 變 undefined)，
+    // 此時呼叫 sendMessage 會同步丟例外。直接優雅失敗，避免 Uncaught (in promise)。
+    if (!chrome.runtime?.id) {
+      resolve({ ok: false, error: 'Extension context invalidated' });
+      return;
+    }
 
-      resolve(response);
-    });
+    try {
+      chrome.runtime.sendMessage(message, (response: RuntimeResponse | undefined) => {
+        if (chrome.runtime.lastError || !response) {
+          resolve({ ok: false, error: chrome.runtime.lastError?.message ?? 'No runtime response' });
+          return;
+        }
+
+        resolve(response);
+      });
+    } catch (error) {
+      resolve({ ok: false, error: error instanceof Error ? error.message : 'sendMessage failed' });
+    }
   });
 }
 

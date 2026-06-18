@@ -154,12 +154,16 @@ function sendToContent(message: ContentMessage, frameId?: number): Promise<Conte
       resolve(response);
     };
 
-    if (frameId === undefined) {
-      chrome.tabs.sendMessage(tabId, message, callback);
-      return;
-    }
+    try {
+      if (frameId === undefined) {
+        chrome.tabs.sendMessage(tabId, message, callback);
+        return;
+      }
 
-    chrome.tabs.sendMessage(tabId, message, { frameId }, callback);
+      chrome.tabs.sendMessage(tabId, message, { frameId }, callback);
+    } catch (error) {
+      resolve({ ok: false, error: error instanceof Error ? error.message : '內容腳本沒有回應' });
+    }
   });
 }
 
@@ -391,14 +395,23 @@ function queryActiveTab(): Promise<chrome.tabs.Tab | null> {
 
 function sendToBackground(message: RuntimeMessage): Promise<RuntimeResponse> {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage(message, (response: RuntimeResponse | undefined) => {
-      if (chrome.runtime.lastError || !response) {
-        resolve({ ok: false, error: chrome.runtime.lastError?.message ?? '背景沒有回應' });
-        return;
-      }
+    if (!chrome.runtime?.id) {
+      resolve({ ok: false, error: 'Extension context invalidated' });
+      return;
+    }
 
-      resolve(response);
-    });
+    try {
+      chrome.runtime.sendMessage(message, (response: RuntimeResponse | undefined) => {
+        if (chrome.runtime.lastError || !response) {
+          resolve({ ok: false, error: chrome.runtime.lastError?.message ?? '背景沒有回應' });
+          return;
+        }
+
+        resolve(response);
+      });
+    } catch (error) {
+      resolve({ ok: false, error: error instanceof Error ? error.message : '背景沒有回應' });
+    }
   });
 }
 
@@ -595,6 +608,25 @@ function scheduleActiveTabReload(): void {
   activeTabReloadTimer = window.setTimeout(() => void loadActiveTab(), 120);
 }
 
+// 快捷鍵縮放後，直接向作用中的 Axure frame 問現值並更新顯示。
+// 不靠比對 storage key —— Axure 原型常跑在子 iframe，content script 會用「該 frame
+// 的 urlKey」儲存，未必等於分頁網址，比對 key 會對不上。直接問 frame 最可靠。
+async function refreshZoomFromContent(): Promise<void> {
+  if (activeFrameId === null || !isAxurePage) {
+    return;
+  }
+  const response = await sendToContent({ type: 'CONTENT_GET_STATE' }, activeFrameId);
+  if (response.ok && response.data.isAxure) {
+    updateZoomDisplay(response.data.zoom);
+  }
+}
+
+let zoomRefreshTimer: number | undefined;
+function scheduleZoomRefresh(): void {
+  window.clearTimeout(zoomRefreshTimer);
+  zoomRefreshTimer = window.setTimeout(() => void refreshZoomFromContent(), 100);
+}
+
 function bindLiveUpdates(): void {
   chrome.tabs.onActivated.addListener(() => scheduleActiveTabReload());
   chrome.tabs.onUpdated.addListener((updatedTabId, info) => {
@@ -603,8 +635,17 @@ function bindLiveUpdates(): void {
     }
   });
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'local' && Object.keys(changes).some((key) => key.startsWith(BM_DATA_PREFIX))) {
+    if (area !== 'local') {
+      return;
+    }
+    const keys = Object.keys(changes);
+    if (keys.some((key) => key.startsWith(BM_DATA_PREFIX))) {
       void loadBookmarks();
+    }
+    // zoom 狀態 key = STORAGE_PREFIX 開頭但非 bm:: (例：axure-scale::https://.../page.html)。
+    // 任一 zoom key 變動(快捷鍵縮放/重置)就向 frame 問現值同步顯示。
+    if (keys.some((key) => key.startsWith(STORAGE_PREFIX) && !key.startsWith(BM_DATA_PREFIX))) {
+      scheduleZoomRefresh();
     }
   });
 }
