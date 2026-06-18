@@ -214,24 +214,30 @@ function renderFolders(): void {
   }
 }
 
-async function load(): Promise<void> {
-  const [all, ign, fld, set] = await Promise.all([
+// 只刷新書籤資料(清單/分組/已忽略)，不碰同步區與資料夾選擇器。
+// 供 storage.onChanged 即時更新使用：避免重整時把正在操作的同步選擇器關掉。
+async function reloadData(): Promise<void> {
+  const [all, ign, fld] = await Promise.all([
     send({ type: 'BOOKMARK_GET_ALL' }),
     send({ type: 'BOOKMARK_GET_IGNORED' }),
-    send({ type: 'BOOKMARK_GET_FOLDERS' }),
-    send({ type: 'SETTINGS_GET' })
+    send({ type: 'BOOKMARK_GET_FOLDERS' })
   ]);
   bookmarks = all.ok && all.bookmarks ? all.bookmarks : [];
   ignored = ign.ok && ign.ignored ? ign.ignored : [];
   folders = fld.ok && fld.folders ? fld.folders : [];
-  if (set.ok && set.settings) {
-    settings = set.settings;
-  }
-  promptModeEl.value = settings.promptMode;
   renderFilterOptions();
   render();
   renderFolders();
   renderIgnored();
+}
+
+async function load(): Promise<void> {
+  await reloadData();
+  const set = await send({ type: 'SETTINGS_GET' });
+  if (set.ok && set.settings) {
+    settings = set.settings;
+  }
+  promptModeEl.value = settings.promptMode;
   await renderSync();
 }
 
@@ -256,13 +262,25 @@ function getBookmarkTree(): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
   return new Promise((resolve) => chrome.bookmarks.getTree((tree) => resolve(tree)));
 }
 
-function folderTitle(id: string): Promise<string> {
-  return new Promise((resolve) => {
-    chrome.bookmarks.get(id, (nodes) => {
-      void chrome.runtime.lastError;
-      resolve(nodes?.[0]?.title || '(資料夾)');
+// 顯示完整路徑(例如「書籤列 / 設計 / Axure 書籤」)，比單一標題更不易誤認。
+async function folderPath(id: string): Promise<string> {
+  const parts: string[] = [];
+  let currentId: string | undefined = id;
+  for (let depth = 0; depth < 12 && currentId; depth++) {
+    const cid = currentId;
+    const node = await new Promise<chrome.bookmarks.BookmarkTreeNode | undefined>((resolve) => {
+      chrome.bookmarks.get(cid, (nodes) => {
+        void chrome.runtime.lastError;
+        resolve(nodes?.[0]);
+      });
     });
-  });
+    if (!node || node.id === '0') {
+      break;
+    }
+    parts.unshift(node.title || '(資料夾)');
+    currentId = node.parentId;
+  }
+  return parts.join(' / ') || '(資料夾)';
 }
 
 // 預設同步位置：書籤列(取不到就退最上層第一個資料夾)。
@@ -274,12 +292,12 @@ async function defaultParentId(): Promise<string | null> {
 }
 
 async function updateLocationText(): Promise<void> {
-  const parentId = settings.chromeSync.parentFolderId;
-  if (!parentId) {
-    syncLocationEl.textContent = '';
+  const targetId = settings.chromeSync.parentFolderId; // 直接同步進此資料夾
+  if (!targetId) {
+    syncLocationEl.textContent = '尚未選擇資料夾，請按「變更…」挑選';
     return;
   }
-  syncLocationEl.textContent = `${await folderTitle(parentId)} › ${SYNC_FOLDER_TITLE}`;
+  syncLocationEl.textContent = await folderPath(targetId);
 }
 
 function getChildren(id: string): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
@@ -386,9 +404,19 @@ async function resolvePath(input: string): Promise<string | null> {
 
 async function openPicker(): Promise<void> {
   await buildPickerRows();
-  pickerSelectedId = settings.chromeSync.parentFolderId ?? (await defaultParentId());
-  const row = pickerRows.find((r) => r.id === pickerSelectedId);
-  pickerPathEl.value = row?.path ?? '';
+  const current = settings.chromeSync.parentFolderId;
+  if (current) {
+    pickerSelectedId = current;
+    const row = pickerRows.find((r) => r.id === current);
+    pickerPathEl.value = row?.path ?? (await folderPath(current));
+  } else {
+    // 尚未設定：預設建議「書籤列 / Axure 書籤」。末段可自行刪除，
+    // 刪掉後就直接同步進所選的上層資料夾(像存檔時清掉預設檔名)。
+    const barId = await defaultParentId();
+    pickerSelectedId = barId;
+    const barRow = pickerRows.find((r) => r.id === barId);
+    pickerPathEl.value = barRow ? `${barRow.path}/${SYNC_FOLDER_TITLE}` : SYNC_FOLDER_TITLE;
+  }
   renderPickerTree();
   syncPickerEl.hidden = false;
 }
@@ -610,14 +638,13 @@ async function onToggleSync(): Promise<void> {
     return;
   }
 
-  // 預設同步到書籤列，使用者不必先挑資料夾就能用。
-  const parentFolderId = settings.chromeSync.parentFolderId ?? (await defaultParentId());
+  // 啟用後直接跳資料夾選擇器，選好按「確定」才開始同步(不自動塞到書籤列)。
   syncNoteEl.hidden = true;
-  settings = { ...settings, chromeSync: { enabled: true, parentFolderId } };
+  settings = { ...settings, chromeSync: { ...settings.chromeSync, enabled: true } };
   await send({ type: 'SETTINGS_SET', settings });
   syncDetailEl.hidden = false;
   await updateLocationText();
-  await runSyncNow();
+  await openPicker();
 }
 
 // 即時同步：popup 或浮動卡片(甚至另一個分頁)改動書籤資料時，
@@ -634,7 +661,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     return;
   }
   window.clearTimeout(reloadTimer);
-  reloadTimer = window.setTimeout(() => void load(), 150);
+  reloadTimer = window.setTimeout(() => void reloadData(), 150);
 });
 
 void load();

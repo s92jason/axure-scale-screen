@@ -196,8 +196,9 @@ h2 { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: up
 }
 .picker-row:hover { background: var(--accent-soft); }
 .picker-row.selected { background: var(--accent); color: #fff; }
-.picker-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.picker-note { color: var(--text-2); font-size: 11.5px; }
+.picker-actions { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+.picker-note { color: var(--text-2); font-size: 11.5px; line-height: 1.55; }
+.picker-actions > span { display: flex; gap: 8px; justify-content: flex-end; }
 
 /* ─── 已忽略 ─── */
 .ignored-list { list-style: none; margin: 0; padding: 0; }

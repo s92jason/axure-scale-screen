@@ -24,7 +24,8 @@ import { isRuntimeMessage } from '../shared/types';
 
 // ── Chrome 真實書籤同步(單向 push：plugin → Chrome 書籤) ──────────
 // Safari 沒有 chrome.bookmarks，全程 feature-detect；失敗不影響其他功能。
-const SYNC_FOLDER_TITLE = 'Axure 書籤';
+// 不破壞式：直接同步進使用者選定的資料夾，只增刪「網址屬於外掛」的書籤，
+// 絕不動使用者在同資料夾的其他書籤(故可與其他書籤共存)。
 let syncing = false;
 
 function bmGetChildren(id: string): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
@@ -54,7 +55,19 @@ function bmRemoveTree(id: string): Promise<void> {
   });
 }
 
+function bmGet(id: string): Promise<chrome.bookmarks.BookmarkTreeNode | null> {
+  return new Promise((resolve) => {
+    chrome.bookmarks.get(id, (nodes) => {
+      void chrome.runtime.lastError;
+      resolve(nodes?.[0] ?? null);
+    });
+  });
+}
+
 // 回傳實際寫入的書籤筆數；錯誤往外丟(由呼叫端決定要回報還是忽略)。
+// 不破壞式：直接寫進 targetId 資料夾。整理前先掃過該資料夾與其(一層)子資料夾，
+// 只移除「網址屬於外掛」的既有書籤，使用者其他書籤完全不動；接著重建。
+// 此演算法為冪等：重跑會收斂，不會累積重複(也順手清掉舊版強制的「Axure 書籤」殘留)。
 async function syncToChrome(): Promise<number> {
   if (typeof chrome.bookmarks === 'undefined') {
     throw new Error('此瀏覽器不支援書籤同步');
@@ -63,36 +76,50 @@ async function syncToChrome(): Promise<number> {
     return 0;
   }
   const settings = await getSettings();
-  const parentId = settings.chromeSync.parentFolderId;
-  if (!settings.chromeSync.enabled || !parentId) {
+  const targetId = settings.chromeSync.parentFolderId; // 現在語意為「直接同步進此資料夾」
+  if (!settings.chromeSync.enabled || !targetId) {
     return 0;
+  }
+  if (!(await bmGet(targetId))) {
+    throw new Error('找不到同步目標資料夾，請重新選擇');
   }
 
   syncing = true;
   try {
-    // 在目標資料夾下維護一個專屬「Axure 書籤」資料夾，每次重建它的內容(單向覆寫)。
-    const siblings = await bmGetChildren(parentId);
-    let folder = siblings.find((node) => !node.url && node.title === SYNC_FOLDER_TITLE) ?? null;
-    if (folder) {
-      const children = await bmGetChildren(folder.id);
-      for (const child of children) {
-        await bmRemoveTree(child.id);
+    const plan = planSync(await getAllBookmarks());
+    const ourUrls = new Set(
+      [...plan.ungrouped, ...plan.groups.flatMap((group) => group.items)].map((bm) => bm.url)
+    );
+
+    // 只刪「網址屬於我們」的既有節點，使用者其他書籤保留。
+    const removeOurBookmarksIn = async (folderId: string): Promise<void> => {
+      for (const child of await bmGetChildren(folderId)) {
+        if (child.url && ourUrls.has(child.url)) {
+          await bmRemoveTree(child.id);
+        }
       }
-    } else {
-      folder = await bmCreate({ parentId, title: SYNC_FOLDER_TITLE });
-    }
-    if (!folder) {
-      throw new Error('無法建立同步資料夾');
+    };
+
+    // 掃描 target 直屬書籤 + 一層子資料夾(分組)，清掉所有屬於我們的舊項。
+    const topChildren = await bmGetChildren(targetId);
+    await removeOurBookmarksIn(targetId);
+    for (const child of topChildren) {
+      if (!child.url) {
+        await removeOurBookmarksIn(child.id);
+      }
     }
 
-    const plan = planSync(await getAllBookmarks());
     let count = 0;
     for (const bm of plan.ungrouped) {
-      await bmCreate({ parentId: folder.id, title: bm.name || bm.projectKey, url: bm.url });
+      await bmCreate({ parentId: targetId, title: bm.name || bm.projectKey, url: bm.url });
       count += 1;
     }
     for (const group of plan.groups) {
-      const sub = await bmCreate({ parentId: folder.id, title: group.name });
+      // 同名分組子資料夾沿用(find-or-create)，避免每次重建/重複。
+      const siblings = await bmGetChildren(targetId);
+      const sub =
+        siblings.find((node) => !node.url && node.title === group.name) ??
+        (await bmCreate({ parentId: targetId, title: group.name }));
       if (!sub) {
         continue;
       }

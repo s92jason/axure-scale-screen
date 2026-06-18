@@ -23,6 +23,8 @@ export interface AxureBookmark {
 
 export interface Settings {
   promptMode: 'card' | 'badge';
+  // parentFolderId 現在語意為「直接同步進此資料夾」的目標資料夾 id
+  // (沿用歷史名稱以相容既有設定；已不再是「父層」)。
   chromeSync: { enabled: boolean; parentFolderId: string | null };
 }
 
