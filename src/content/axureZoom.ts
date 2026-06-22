@@ -75,6 +75,26 @@ async function setZoom(nextZoom: number): Promise<ZoomLevel> {
   return state.zoom;
 }
 
+// 觸控板/手勢縮放專用：立即更新畫面，持久化做 debounce，
+// 避免 pinch 這類高頻事件造成大量 storage 寫入。
+let persistTimer: number | undefined;
+function scheduleZoomPersist(): void {
+  if (persistTimer !== undefined) {
+    window.clearTimeout(persistTimer);
+  }
+  persistTimer = window.setTimeout(() => {
+    void persistZoom(state.zoom);
+  }, 200);
+}
+
+function applyZoomVisual(nextZoom: number): void {
+  if (!state.root) {
+    return;
+  }
+  state.zoom = applyZoom(state.root, nextZoom);
+  scheduleZoomPersist();
+}
+
 async function resetToDefault(): Promise<ZoomLevel> {
   if (!state.root) {
     return state.zoom;
@@ -110,6 +130,73 @@ function handleShortcuts(): void {
     },
     { capture: true }
   );
+}
+
+// 觸控板雙指縮放（pinch）：
+// - Chrome / Windows：呈現為 ctrlKey=true 的 wheel 事件（也涵蓋 Ctrl+滾輪縮放）。
+// - Safari：WebKit 專屬的 gesturestart/gesturechange/gestureend，event.scale 為相對起點的累積倍率。
+// 兩條路徑都 preventDefault 掉瀏覽器原生頁面縮放，改套用外掛縮放；僅在 Axure 文件上生效。
+function handlePinchZoom(): void {
+  let gestureActive = false;
+  let gestureBaseZoom: ZoomLevel = DEFAULT_ZOOM as ZoomLevel;
+  let wheelAccum = 0;
+  const WHEEL_STEP_THRESHOLD = 40; // 每累積這麼多 px 的 ctrl+wheel delta，動一個 ZOOM_STEP
+
+  window.addEventListener(
+    'wheel',
+    (event) => {
+      // Safari 走 gesture 事件；手勢進行中就不重複處理 wheel。
+      if (!state.isAxure || !event.ctrlKey || gestureActive) {
+        return;
+      }
+      event.preventDefault();
+      wheelAccum += event.deltaY;
+      while (Math.abs(wheelAccum) >= WHEEL_STEP_THRESHOLD) {
+        const delta = wheelAccum > 0 ? -ZOOM_STEP : ZOOM_STEP; // deltaY > 0（pinch in）= 縮小
+        wheelAccum += wheelAccum > 0 ? -WHEEL_STEP_THRESHOLD : WHEEL_STEP_THRESHOLD;
+        applyZoomVisual(adjustZoom(state.zoom, delta));
+      }
+    },
+    { capture: true, passive: false }
+  );
+
+  // gesturestart/change/end 不在標準 WindowEventMap，用字串型別的 addEventListener overload 註冊。
+  const addGesture = (type: string, handler: (event: Event) => void): void => {
+    window.addEventListener(type, handler as EventListener, { passive: false });
+  };
+
+  addGesture('gesturestart', (event) => {
+    if (!state.isAxure) {
+      return;
+    }
+    event.preventDefault();
+    gestureActive = true;
+    gestureBaseZoom = state.zoom;
+  });
+
+  addGesture('gesturechange', (event) => {
+    if (!state.isAxure) {
+      return;
+    }
+    event.preventDefault();
+    const scale = (event as unknown as { scale?: number }).scale;
+    if (typeof scale !== 'number' || !Number.isFinite(scale) || scale <= 0) {
+      return;
+    }
+    applyZoomVisual(gestureBaseZoom * scale);
+  });
+
+  addGesture('gestureend', (event) => {
+    if (!state.isAxure) {
+      return;
+    }
+    event.preventDefault();
+    gestureActive = false;
+    if (persistTimer !== undefined) {
+      window.clearTimeout(persistTimer);
+    }
+    void persistZoom(state.zoom);
+  });
 }
 
 async function applyShortcutAction(type: ShortcutMessageType): Promise<ZoomLevel> {
@@ -244,6 +331,7 @@ function handlePopupMessages(): void {
 async function bootstrap(): Promise<void> {
   handlePopupMessages();
   handleShortcuts();
+  handlePinchZoom();
 
   const foundRoot = findAxureRoot();
   const isAxure = isLikelyAxureDocument(foundRoot);
