@@ -1,5 +1,5 @@
 export const MIN_ZOOM = 50;
-export const MAX_ZOOM = 200;
+export const MAX_ZOOM = 400;
 export const ZOOM_STEP = 10;
 export const DEFAULT_ZOOM = 100;
 
