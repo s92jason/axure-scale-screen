@@ -36,9 +36,9 @@ npm test
 - 新功能至少涵蓋：倍率邊界、URL key 正規化、縮放套用/重置流程。
 
 ## Commit 與 PR 規範
-- Commit 採 Conventional Commits：
-  - `feat: 新增 Axure 縮放快捷鍵`
-  - `fix: 修正重置後倍率未同步`
+- Commit 採**帶 scope 的** Conventional Commits：
+  - `feat(zoom): 新增 Axure 縮放快捷鍵`
+  - `fix(popup): 修正重置後倍率未同步`
 - PR 請附：
   - 變更摘要與動機
   - 測試結果（指令與輸出）
