@@ -618,6 +618,8 @@ async function refreshZoomFromContent(): Promise<void> {
   const response = await sendToContent({ type: 'CONTENT_GET_STATE' }, activeFrameId);
   if (response.ok && response.data.isAxure) {
     updateZoomDisplay(response.data.zoom);
+    // 快捷鍵/手勢縮放後，狀態列文字也要跟著更新（原本只更新滑桿，文字停在舊倍率）。
+    setStatus('', `已記住此頁 ${response.data.zoom}%`);
   }
 }
 
