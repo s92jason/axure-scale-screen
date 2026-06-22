@@ -1,4 +1,4 @@
-import { DEFAULT_ZOOM, ZOOM_STEP } from '../shared/constants';
+import { DEFAULT_ZOOM, MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from '../shared/constants';
 import type { ContentMessage, ContentResponse, RuntimeMessage, RuntimeResponse, ZoomLevel } from '../shared/types';
 import { toUrlKey } from '../shared/url';
 import { adjustZoom, toZoomLevel } from '../shared/zoom';
@@ -139,8 +139,15 @@ function handleShortcuts(): void {
 function handlePinchZoom(): void {
   let gestureActive = false;
   let gestureBaseZoom: ZoomLevel = DEFAULT_ZOOM as ZoomLevel;
-  let wheelAccum = 0;
-  const WHEEL_STEP_THRESHOLD = 40; // 每累積這麼多 px 的 ctrl+wheel delta，動一個 ZOOM_STEP
+
+  // ctrl+wheel（Chrome / Windows 觸控板 pinch、以及 Ctrl+滾輪）：
+  // 縮放量與 pinch 幅度「指數正比」，而非固定門檻——一個手勢就能順順掃過多階，不必反覆拉。
+  // （原本固定 40px/階，配上 Chrome pinch 很小的 deltaY 會非常鈍。）
+  // 以浮點 pinchZoom 累積、再交給 applyZoom snap 到最近的 10%。
+  const PINCH_SENSITIVITY = 0.01; // 每單位 deltaY 的縮放比例；越大越靈敏（手感主要調這個）
+  const PINCH_RESYNC_GAP_MS = 200; // 距上次事件超過此時間視為新手勢，浮點起點重新對齊實際倍率
+  let pinchZoom: number = DEFAULT_ZOOM;
+  let lastWheelAt = 0;
 
   window.addEventListener(
     'wheel',
@@ -150,12 +157,14 @@ function handlePinchZoom(): void {
         return;
       }
       event.preventDefault();
-      wheelAccum += event.deltaY;
-      while (Math.abs(wheelAccum) >= WHEEL_STEP_THRESHOLD) {
-        const delta = wheelAccum > 0 ? -ZOOM_STEP : ZOOM_STEP; // deltaY > 0（pinch in）= 縮小
-        wheelAccum += wheelAccum > 0 ? -WHEEL_STEP_THRESHOLD : WHEEL_STEP_THRESHOLD;
-        applyZoomVisual(adjustZoom(state.zoom, delta));
+      const now = Date.now();
+      if (now - lastWheelAt > PINCH_RESYNC_GAP_MS) {
+        pinchZoom = state.zoom; // 新一段手勢：以目前實際倍率為起點
       }
+      lastWheelAt = now;
+      // deltaY < 0（pinch out / 向上）放大、> 0 縮小；指數曲線讓手感與原生 pinch 一致。
+      pinchZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinchZoom * Math.exp(-event.deltaY * PINCH_SENSITIVITY)));
+      applyZoomVisual(pinchZoom);
     },
     { capture: true, passive: false }
   );
