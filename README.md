@@ -5,8 +5,8 @@
 ## 功能
 
 ### 縮放
-- 縮放範圍：`50%` 到 `200%`（`10%` 步進）
-- 控制方式：popup 滑桿、`+/-` 按鈕、`Reset`
+- 縮放範圍：`50%` 到 `400%`（`10%` 步進）
+- 控制方式：popup 滑桿、`+/-` 按鈕、`Reset`、觸控板雙指縮放（pinch；Safari 走手勢事件、Chrome 走 Ctrl+滾輪/雙指）
 - 快捷鍵：`Cmd/Ctrl + Option + =`（放大）、`Cmd/Ctrl + Option + -`（縮小）、`Cmd/Ctrl + Option + 0`（重置）
   - 刻意避開原生縮放的 `Cmd +/-`：那是瀏覽器保留鍵（Safari 攔不住、`chrome.commands` 也不收 `+/-`），改用加上 Option 的非保留組合，兩瀏覽器皆通且不衝突。
 - 瀏覽器層快捷鍵（可重新指派）：`Cmd/Ctrl + Shift + ↑ / ↓ / 0`，由 `chrome.commands` 提供預設鍵。
