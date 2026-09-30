@@ -11,6 +11,7 @@ import type {
 import { toEntryUrl } from '../shared/url';
 import { adjustZoom, toZoomLevel } from '../shared/zoom';
 import { mountTabCleanup } from '../tab-cleanup/panel';
+import { bindHubTabs } from './hub-tabs';
 
 function must<T extends HTMLElement>(selector: string): T {
   const el = document.querySelector<T>(selector);
@@ -657,7 +658,15 @@ async function bootstrap(): Promise<void> {
   setControlsDisabled(true);
   bindEvents();
   bindLiveUpdates();
-  mountTabCleanup(must<HTMLElement>('#tabCleanup'));
+  bindHubTabs(must<HTMLElement>('#linkHub'));
+  const cleanupCount = must<HTMLSpanElement>('#cleanupCount');
+  mountTabCleanup(must<HTMLElement>('#tabCleanup'), {
+    compact: true,
+    onCandidatesChange: (count) => {
+      cleanupCount.textContent = String(count);
+      cleanupCount.hidden = count === 0;
+    }
+  });
   void loadBookmarks();
   await loadActiveTab();
 }

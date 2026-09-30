@@ -61,18 +61,26 @@
         </div>
       </div>
 
-      <section class="bm-section">
-        <div class="bm-head">
-          <span class="bm-title">書籤</span>
-          <button id="bmAdd" type="button" class="bm-add accent" disabled>＋ 收藏此頁</button>
+      <div id="linkHub" class="link-hub">
+        <div class="hub-tabs" role="tablist" aria-label="Axure 連結工具">
+          <button id="hubBookmarks" type="button" role="tab" aria-controls="bookmarkPanel" aria-selected="true">書籤</button>
+          <button id="hubCleanup" type="button" role="tab" aria-controls="tabCleanup" aria-selected="false" tabindex="-1">清理頁籤 <span id="cleanupCount" class="hub-count" hidden></span></button>
         </div>
-        <input id="bmSearch" type="search" class="bm-search" placeholder="搜尋書籤…" hidden />
-        <ul id="bmList" class="bm-list"></ul>
-        <p id="bmEmpty" class="bm-empty">尚無書籤，開啟 Axure 原型後按「＋ 收藏此頁」。</p>
-        <button id="bmManage" type="button" class="bm-manage">管理書籤 →</button>
-      </section>
+        <div class="hub-panels">
+          <section id="bookmarkPanel" class="bm-section" role="tabpanel" aria-labelledby="hubBookmarks">
+            <div class="bm-head">
+              <span class="bm-title">書籤</span>
+              <button id="bmAdd" type="button" class="bm-add accent" disabled>＋ 收藏此頁</button>
+            </div>
+            <input id="bmSearch" type="search" class="bm-search" placeholder="搜尋書籤…" hidden />
+            <ul id="bmList" class="bm-list"></ul>
+            <p id="bmEmpty" class="bm-empty">尚無書籤，開啟 Axure 原型後按「＋ 收藏此頁」。</p>
+            <button id="bmManage" type="button" class="bm-manage">管理書籤 →</button>
+          </section>
 
-      <section id="tabCleanup" aria-label="清理 Axure 頁籤"></section>
+          <section id="tabCleanup" role="tabpanel" aria-labelledby="hubCleanup" hidden></section>
+        </div>
+      </div>
 
       <div class="hint">
         <span><kbd>⌘⌥ +</kbd> 放大</span>

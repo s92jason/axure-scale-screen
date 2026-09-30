@@ -27,14 +27,17 @@ function locationLabel(rawUrl: string): string {
 }
 
 // popup、側欄與管理頁共用的清理介面；關閉範圍固定為使用者看到的清單。
-export function mountTabCleanup(root: HTMLElement): () => void {
+export function mountTabCleanup(
+  root: HTMLElement,
+  options: { compact?: boolean; onCandidatesChange?: (count: number) => void } = {}
+): () => void {
   root.classList.add('tab-cleanup');
   root.innerHTML = `
     <div class="tab-cleanup-head">
       <h2>清理 Axure 頁籤</h2>
       <button type="button" class="tab-cleanup-refresh">重新檢查</button>
     </div>
-    <p class="tab-cleanup-description">檢查所有視窗中屬於「已完成」專案的頁籤。</p>
+    <p class="tab-cleanup-description">${options.compact ? '所有視窗・「已完成」專案' : '檢查所有視窗中屬於「已完成」專案的頁籤。'}</p>
     <p class="tab-cleanup-status" role="status" aria-live="polite">正在檢查頁籤…</p>
     <ul class="tab-cleanup-list" aria-label="建議關閉的已完成頁籤" hidden></ul>
     <button type="button" class="tab-cleanup-close" disabled>一鍵關閉全部</button>
@@ -49,6 +52,11 @@ export function mountTabCleanup(root: HTMLElement): () => void {
   let reloadPending = false;
   let timer: number | undefined;
   let notice = '';
+
+  function updateStatus(text: string): void {
+    status.textContent = text;
+    status.title = text;
+  }
 
   function render(): void {
     list.replaceChildren();
@@ -71,6 +79,7 @@ export function mountTabCleanup(root: HTMLElement): () => void {
     close.disabled = busy || candidates.length === 0;
     refresh.disabled = busy;
     root.setAttribute('aria-busy', String(busy));
+    options.onCandidatesChange?.(candidates.length);
   }
 
   function summary(): string {
@@ -97,17 +106,17 @@ export function mountTabCleanup(root: HTMLElement): () => void {
     }
     busy = true;
     render();
-    status.textContent = '正在檢查頁籤…';
+    updateStatus('正在檢查頁籤…');
     const response = await send({ type: 'AXURE_GET_COMPLETED_TABS' });
     if (disposed) {
       return;
     }
     if (response.ok) {
       candidates = response.completedTabs ?? [];
-      status.textContent = `${notice}${summary()}`;
+      updateStatus(`${notice}${summary()}`);
     } else {
       candidates = [];
-      status.textContent = `${notice}檢查失敗：${response.error}`;
+      updateStatus(`${notice}檢查失敗：${response.error}`);
     }
     finish();
   }
@@ -121,7 +130,7 @@ export function mountTabCleanup(root: HTMLElement): () => void {
     notice = '';
     window.clearTimeout(timer);
     render();
-    status.textContent = '正在關閉已完成頁籤…';
+    updateStatus('正在關閉已完成頁籤…');
     const response = await send({ type: 'AXURE_CLOSE_COMPLETED_TABS', tabIds });
     if (disposed) {
       return;
@@ -130,7 +139,7 @@ export function mountTabCleanup(root: HTMLElement): () => void {
     notice = response.ok
       ? `已關閉 ${response.closedCount ?? 0} 個頁籤。`
       : `${response.closedCount ? `已關閉 ${response.closedCount} 個頁籤。` : ''}關閉失敗：${response.error}。`;
-    status.textContent = `${notice}${response.completedTabs ? summary() : ''}`;
+    updateStatus(`${notice}${response.completedTabs ? summary() : ''}`);
     finish();
     if (!response.completedTabs) {
       void scan(true);

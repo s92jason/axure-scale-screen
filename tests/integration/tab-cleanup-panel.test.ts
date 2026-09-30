@@ -92,6 +92,23 @@ function status(): string {
 }
 
 describe('completed Axure tab cleanup panel', () => {
+  it('keeps the compact cleanup count in sync with scanning and closing', async () => {
+    const onCandidatesChange = vi.fn();
+    dispose = mountTabCleanup(root, { compact: true, onCandidatesChange });
+    await Promise.resolve();
+
+    expect(root.querySelector('.tab-cleanup-description')!.textContent).toBe('所有視窗・「已完成」專案');
+    expect(onCandidatesChange).toHaveBeenLastCalledWith(2);
+    closeButton().click();
+    await Promise.resolve();
+    expect(onCandidatesChange).toHaveBeenLastCalledWith(0);
+
+    scanResponse = { ok: true, completedTabs: [secondTab] };
+    root.querySelector<HTMLButtonElement>('.tab-cleanup-refresh')!.click();
+    await Promise.resolve();
+    expect(onCandidatesChange).toHaveBeenLastCalledWith(1);
+  });
+
   it('previews the completed projects and their pages before offering to close them', async () => {
     await mount();
 

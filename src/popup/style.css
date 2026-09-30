@@ -86,6 +86,8 @@ html { background: transparent; }
 body {
   margin: 0;
   width: 320px;
+  height: 560px;
+  overflow: hidden;
   background: transparent;
   color: var(--text);
 }
@@ -93,6 +95,10 @@ body {
 /* ─── Liquid Glass panel ─── */
 .panel {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
   margin: 0;
   border-radius: 22px;
   overflow: hidden;
@@ -117,6 +123,7 @@ body {
 
 /* ─── Header ─── */
 .panel-head {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -164,6 +171,8 @@ h1 {
 @keyframes dotpulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
 
 /* ─── Zoom section ─── */
+.zoom-live, .state-card { flex-shrink: 0; }
+.zoom-live[hidden] { display: none; }
 .zoom-section { padding: 16px 16px 6px; }
 .zoom-header-row {
   display: flex;
@@ -298,8 +307,21 @@ button.block { width: 100%; }
 .state-actions { display: flex; flex-direction: column; gap: 7px; }
 .state-actions button[hidden] { display: none; }
 
-/* ─── Bookmarks (always available, even in error states) ─── */
-.bm-section { padding: 11px 16px 13px; border-top: 1px solid var(--divider); }
+/* 書籤與清理共用固定內容區，僅目前顯示的清單捲動。 */
+.link-hub { display: flex; flex-direction: column; flex: 1; min-height: 0; border-top: 1px solid var(--divider); }
+.hub-tabs { display: flex; gap: 4px; padding: 8px 16px 0; flex-shrink: 0; }
+.hub-tabs [role="tab"] { flex: 1; gap: 6px; height: 30px; font-size: 11.5px; background: transparent; box-shadow: none; }
+.hub-tabs [aria-selected="true"] { color: var(--accent-text); background: var(--accent-soft); }
+.hub-tabs [role="tab"]:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 1px; }
+.hub-count { min-width: 17px; padding: 1px 5px; border-radius: 99px; background: var(--accent-soft-2); color: var(--accent-text); font-size: 10px; }
+.hub-count[hidden] { display: none; }
+.hub-panels { flex: 1; min-height: 0; }
+.hub-panels > [role="tabpanel"] { height: 100%; min-height: 0; }
+.hub-panels > [hidden] { display: none; }
+
+/* ─── Bookmarks (available even in error states) ─── */
+.bm-section { display: flex; flex-direction: column; padding: 11px 16px 13px; }
+.bm-head, .bm-search, .bm-empty, .bm-manage { flex-shrink: 0; }
 .bm-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
 .bm-title { font-size: 10.5px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.07em; }
 .bm-add { height: 25px; width: auto; padding: 0 10px; font-size: 11px; border-radius: 8px; }
@@ -335,7 +357,8 @@ button.block { width: 100%; }
   display: flex;
   flex-direction: column;
   gap: 5px;
-  max-height: 176px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -347,7 +370,7 @@ button.block { width: 100%; }
   background-clip: content-box;
 }
 
-.bm-row { display: flex; align-items: stretch; gap: 5px; }
+.bm-row { display: flex; align-items: stretch; gap: 5px; flex-shrink: 0; }
 .bm-open {
   flex: 1;
   min-width: 0;
@@ -409,15 +432,34 @@ button.block { width: 100%; }
 }
 .bm-manage:hover { background: var(--accent-soft); box-shadow: none; filter: none; }
 
+/* 清理清單填滿共用內容區，操作按鈕保持可見。 */
+.hub-panels > .tab-cleanup { display: flex; flex-direction: column; margin: 0; padding: 11px 16px 13px; border: 0; border-radius: 0; background: transparent; }
+.hub-panels > .tab-cleanup[hidden] { display: none; }
+.hub-panels .tab-cleanup-head, .hub-panels .tab-cleanup-description, .hub-panels .tab-cleanup-status, .hub-panels .tab-cleanup-close { flex-shrink: 0; }
+.hub-panels .tab-cleanup h2 { font-size: 11.5px; }
+.hub-panels .tab-cleanup-description { margin: 8px 0 0; font-size: 11px; }
+.hub-panels .tab-cleanup-status {
+  margin: 8px 0;
+  font-size: 11px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.hub-panels .tab-cleanup-list { flex: 1; min-height: 0; max-height: none; margin: 0 0 9px; overscroll-behavior: contain; }
+.hub-panels .tab-cleanup-list[hidden] { display: none; }
+.hub-panels .tab-cleanup-close { margin-top: auto; }
+
 /* ─── Shortcut hint ─── */
 .hint {
+  flex-shrink: 0;
   padding: 9px 16px 13px;
   border-top: 1px solid var(--divider);
   display: flex;
   gap: 13px;
   flex-wrap: wrap;
   font-size: 10.5px;
-  color: var(--text-3);
+  color: var(--text-2);
 }
 .hint span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 kbd {
@@ -436,25 +478,35 @@ kbd {
 
 /* ═══════════════════════════════════════════
    Side panel variant (Chrome Side Panel)
-   填滿側欄寬高、無浮動圓角/陰影、清單自然展開
+   填滿側欄寬高、無浮動圓角/陰影，沿用固定提示與清單捲動
 ═══════════════════════════════════════════ */
 body.sidepanel {
   width: auto;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   background:
     radial-gradient(130% 90% at 0% 0%, rgba(110, 150, 255, 0.12), transparent 55%),
     linear-gradient(180deg, #eef1f8 0%, #e9e7f5 100%);
 }
 body.sidepanel .panel {
   border-radius: 0;
-  min-height: 100vh;
   box-shadow: none;
   background: transparent;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 body.sidepanel .panel::before { display: none; }
-body.sidepanel .bm-list { max-height: none; } /* 側欄高，書籤清單自然展開、整欄捲動 */
+
+@media (max-height: 500px) {
+  body.sidepanel .zoom-section { padding: 8px 16px 0; }
+  body.sidepanel .zoom-header-row { margin-bottom: 8px; }
+  body.sidepanel #zoomRange { margin-bottom: 6px; }
+  body.sidepanel .actions { padding: 6px 16px 8px; }
+  body.sidepanel .state-card { padding: 8px 16px; }
+  body.sidepanel .state-ico { display: none; }
+  body.sidepanel .state-card p { margin-bottom: 6px; }
+  body.sidepanel .tab-cleanup-description { margin: 4px 0 0; }
+}
 
 @media (prefers-color-scheme: dark) {
   body.sidepanel {
