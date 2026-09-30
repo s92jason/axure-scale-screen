@@ -1,4 +1,5 @@
 import { COMPLETED_FOLDER, STORAGE_PREFIX } from '../shared/constants';
+import { getAllBookmarks, getIgnored, getSettings, getStoredFolders } from '../shared/bookmarkStore';
 import { toNetscapeBookmarks } from '../shared/netscape';
 import type { AxureBookmark, RuntimeMessage, RuntimeResponse, Settings } from '../shared/types';
 import { toEntryUrl } from '../shared/url';
@@ -24,6 +25,9 @@ const emptyEl = must<HTMLParagraphElement>('#empty');
 const ignoredListEl = must<HTMLUListElement>('#ignoredList');
 const ignoredEmptyEl = must<HTMLParagraphElement>('#ignoredEmpty');
 const exportEl = must<HTMLButtonElement>('#export');
+const bookmarkLoadFeedbackEl = must<HTMLDivElement>('#bookmarkLoadFeedback');
+const bookmarkLoadStatusEl = must<HTMLParagraphElement>('#bookmarkLoadStatus');
+const bookmarkRetryEl = must<HTMLButtonElement>('#bookmarkRetry');
 const newFolderEl = must<HTMLInputElement>('#newFolder');
 const addFolderEl = must<HTMLButtonElement>('#addFolder');
 const folderListEl = must<HTMLUListElement>('#folderList');
@@ -49,6 +53,11 @@ let bookmarks: AxureBookmark[] = [];
 let ignored: string[] = [];
 let folders: string[] = [];
 let settings: Settings = { promptMode: 'card', chromeSync: { enabled: false, parentFolderId: null } };
+let bookmarksLoaded = false;
+let bookmarksLoading = false;
+let dataReloadId = 0;
+let settingsReloadId = 0;
+const readErrors = new Map<string, string>();
 
 // 資料夾選擇器狀態
 interface FolderRow {
@@ -62,13 +71,17 @@ let pickerSelectedId: string | null = null;
 
 function send(message: RuntimeMessage): Promise<RuntimeResponse> {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage(message, (response: RuntimeResponse | undefined) => {
-      if (chrome.runtime.lastError || !response) {
-        resolve({ ok: false, error: chrome.runtime.lastError?.message ?? '背景沒有回應' });
-        return;
-      }
-      resolve(response);
-    });
+    try {
+      chrome.runtime.sendMessage(message, (response: RuntimeResponse | undefined) => {
+        if (chrome.runtime.lastError || !response) {
+          resolve({ ok: false, error: chrome.runtime.lastError?.message ?? '背景沒有回應' });
+          return;
+        }
+        resolve(response);
+      });
+    } catch (error) {
+      resolve({ ok: false, error: error instanceof Error ? error.message : '背景沒有回應' });
+    }
   });
 }
 
@@ -169,7 +182,7 @@ function rowFor(bm: AxureBookmark): HTMLTableRowElement {
 }
 
 function render(): void {
-  emptyEl.hidden = bookmarks.length > 0;
+  emptyEl.hidden = !bookmarksLoaded || bookmarksLoading || readErrors.has('書籤') || bookmarks.length > 0;
   rowsEl.replaceChildren(...applyView().map(rowFor));
 }
 
@@ -221,31 +234,118 @@ function renderFolders(): void {
   }
 }
 
-// 只刷新書籤資料(清單/分組/已忽略)，不碰同步區與資料夾選擇器。
-// 供 storage.onChanged 即時更新使用：避免重整時把正在操作的同步選擇器關掉。
+function updateLoadStatus(): void {
+  const error = readErrors.get('書籤') ?? [...readErrors.values()][0];
+  bookmarkLoadFeedbackEl.hidden = !error && (bookmarksLoaded || !bookmarksLoading);
+  bookmarkLoadFeedbackEl.classList.toggle('is-error', Boolean(error));
+  bookmarkLoadStatusEl.textContent = error ?? '正在讀取書籤…';
+  bookmarkRetryEl.hidden = !error;
+  bookmarkRetryEl.disabled = bookmarksLoading;
+  exportEl.disabled = !bookmarksLoaded;
+}
+
+function recordReadError(label: string, error: unknown): void {
+  const detail = error instanceof Error ? error.message : '無法存取外掛儲存空間';
+  readErrors.set(label, `${label}讀取失敗：${detail}。請按「重新讀取」再試一次。`);
+}
+
+// 直接讀取同一外掛的 local storage，避免 Safari 背景暫時無法回應時誤顯示空清單。
+// 各項資料獨立載入，分組或設定較慢時仍先顯示已讀到的書籤。
 async function reloadData(): Promise<void> {
-  const [all, ign, fld] = await Promise.all([
-    send({ type: 'BOOKMARK_GET_ALL' }),
-    send({ type: 'BOOKMARK_GET_IGNORED' }),
-    send({ type: 'BOOKMARK_GET_FOLDERS' })
-  ]);
-  bookmarks = all.ok && all.bookmarks ? all.bookmarks : [];
-  ignored = ign.ok && ign.ignored ? ign.ignored : [];
-  folders = fld.ok && fld.folders ? fld.folders : [];
-  renderFilterOptions();
+  const requestId = ++dataReloadId;
+  bookmarksLoading = true;
+  updateLoadStatus();
   render();
-  renderFolders();
-  renderIgnored();
+  await Promise.all([
+    (async () => {
+      try {
+        const stored = await getAllBookmarks();
+        if (requestId !== dataReloadId) {
+          return;
+        }
+        bookmarks = stored;
+        bookmarksLoaded = true;
+        readErrors.delete('書籤');
+        renderFolders();
+      } catch (error) {
+        if (requestId === dataReloadId) {
+          recordReadError('書籤', error);
+        }
+      } finally {
+        if (requestId === dataReloadId) {
+          bookmarksLoading = false;
+          render();
+          updateLoadStatus();
+        }
+      }
+    })(),
+    (async () => {
+      try {
+        const stored = await getStoredFolders();
+        if (requestId !== dataReloadId) {
+          return;
+        }
+        folders = stored;
+        readErrors.delete('分組');
+        renderFilterOptions();
+        render();
+        renderFolders();
+      } catch (error) {
+        if (requestId === dataReloadId) {
+          recordReadError('分組', error);
+        }
+      } finally {
+        if (requestId === dataReloadId) {
+          updateLoadStatus();
+        }
+      }
+    })(),
+    (async () => {
+      try {
+        const stored = await getIgnored();
+        if (requestId !== dataReloadId) {
+          return;
+        }
+        ignored = stored;
+        readErrors.delete('忽略清單');
+        renderIgnored();
+      } catch (error) {
+        if (requestId === dataReloadId) {
+          recordReadError('忽略清單', error);
+        }
+      } finally {
+        if (requestId === dataReloadId) {
+          updateLoadStatus();
+        }
+      }
+    })()
+  ]);
+}
+
+async function reloadSettings(): Promise<void> {
+  const requestId = ++settingsReloadId;
+  try {
+    const stored = await getSettings();
+    if (requestId !== settingsReloadId) {
+      return;
+    }
+    settings = stored;
+    readErrors.delete('設定');
+    promptModeEl.value = settings.promptMode;
+    await renderSync();
+  } catch (error) {
+    if (requestId === settingsReloadId) {
+      recordReadError('設定', error);
+    }
+  } finally {
+    if (requestId === settingsReloadId) {
+      updateLoadStatus();
+    }
+  }
 }
 
 async function load(): Promise<void> {
-  await reloadData();
-  const set = await send({ type: 'SETTINGS_GET' });
-  if (set.ok && set.settings) {
-    settings = set.settings;
-  }
-  promptModeEl.value = settings.promptMode;
-  await renderSync();
+  await Promise.all([reloadData(), reloadSettings()]);
 }
 
 // ── Chrome 真實書籤同步 UI ──────────────────────────────
@@ -589,6 +689,9 @@ async function restore(projectKey: string): Promise<void> {
 }
 
 function exportBookmarks(): void {
+  if (!bookmarksLoaded) {
+    return;
+  }
   const blob = new Blob([toNetscapeBookmarks(bookmarks)], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
@@ -602,6 +705,7 @@ searchEl.addEventListener('input', render);
 folderFilterEl.addEventListener('change', render);
 sortEl.addEventListener('change', render);
 exportEl.addEventListener('click', exportBookmarks);
+bookmarkRetryEl.addEventListener('click', () => void load());
 addFolderEl.addEventListener('click', () => void addFolderUI());
 newFolderEl.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') {
@@ -665,17 +769,27 @@ async function onToggleSync(): Promise<void> {
 // load() 只讀不寫，不會自我觸發；150ms debounce 把連續多個 key 變動併成一次。
 const BM_STORAGE_PREFIX = `${STORAGE_PREFIX}bm::`;
 let reloadTimer: number | undefined;
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area !== 'local') {
-    return;
-  }
-  const touchedBookmarks = Object.keys(changes).some((key) => key.startsWith(BM_STORAGE_PREFIX));
-  if (!touchedBookmarks) {
-    return;
-  }
-  window.clearTimeout(reloadTimer);
-  reloadTimer = window.setTimeout(() => void reloadData(), 150);
-});
-
-mountTabCleanup(must<HTMLElement>('#tabCleanup'));
 void load();
+
+try {
+  chrome.storage?.onChanged?.addListener((changes, area) => {
+    if (area !== 'local') {
+      return;
+    }
+    const touchedBookmarks = Object.keys(changes).some((key) => key.startsWith(BM_STORAGE_PREFIX));
+    if (!touchedBookmarks) {
+      return;
+    }
+    window.clearTimeout(reloadTimer);
+    reloadTimer = window.setTimeout(() => void reloadData(), 150);
+  });
+} catch {
+  // Safari 若無法註冊即時更新，仍可讀取書籤並手動重新讀取。
+}
+
+try {
+  mountTabCleanup(must<HTMLElement>('#tabCleanup'));
+} catch (error) {
+  const cleanup = must<HTMLElement>('#tabCleanup');
+  cleanup.textContent = `頁籤清理暫時無法使用：${error instanceof Error ? error.message : '請重新開啟管理頁'}。`;
+}

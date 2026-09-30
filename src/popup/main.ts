@@ -1,4 +1,5 @@
 import { DEFAULT_ZOOM, MAX_ZOOM, MIN_ZOOM, STORAGE_PREFIX, ZOOM_STEP } from '../shared/constants';
+import { getAllBookmarks } from '../shared/bookmarkStore';
 import { toProjectKey } from '../shared/projectKey';
 import type {
   AxureBookmark,
@@ -11,6 +12,7 @@ import type {
 import { toEntryUrl } from '../shared/url';
 import { adjustZoom, toZoomLevel } from '../shared/zoom';
 import { mountTabCleanup } from '../tab-cleanup/panel';
+import { bindHubTabs } from './hub-tabs';
 
 function must<T extends HTMLElement>(selector: string): T {
   const el = document.querySelector<T>(selector);
@@ -39,6 +41,8 @@ const bmAdd = must<HTMLButtonElement>('#bmAdd');
 const bmSearch = must<HTMLInputElement>('#bmSearch');
 const bmList = must<HTMLUListElement>('#bmList');
 const bmEmpty = must<HTMLParagraphElement>('#bmEmpty');
+const bmLoadStatus = must<HTMLParagraphElement>('#bmLoadStatus');
+const bmRetry = must<HTMLButtonElement>('#bmRetry');
 
 must<HTMLButtonElement>('#bmManage').addEventListener('click', () => {
   chrome.runtime.openOptionsPage();
@@ -78,6 +82,10 @@ let currentTabUrl: string | null = null;
 let currentTabTitle = '';
 let currentProjectKey: string | null = null;
 let bookmarks: AxureBookmark[] = [];
+let bookmarksLoaded = false;
+let bookmarkReadId = 0;
+let bookmarkReadPending = true;
+let bookmarkReadFailed = false;
 
 function setStatus(tone: StatusTone, text: string): void {
   status.className = tone ? `status ${tone}` : 'status';
@@ -422,7 +430,7 @@ function isCurrentBookmarked(): boolean {
 
 function updateAddAvailability(): void {
   const saved = isCurrentBookmarked();
-  const canAdd = currentProjectKey !== null && isAxurePage && !saved;
+  const canAdd = bookmarksLoaded && currentProjectKey !== null && isAxurePage && !saved;
   bmAdd.disabled = !canAdd;
   bmAdd.classList.toggle('is-saved', saved);
   if (saved) {
@@ -443,7 +451,7 @@ function renderBookmarks(): void {
     : bookmarks;
 
   bmSearch.hidden = bookmarks.length <= 4;
-  bmEmpty.hidden = bookmarks.length > 0;
+  bmEmpty.hidden = !bookmarksLoaded || bookmarkReadPending || bookmarkReadFailed || bookmarks.length > 0;
   bmList.replaceChildren();
 
   for (const bm of filtered) {
@@ -491,9 +499,38 @@ function renderBookmarks(): void {
 }
 
 async function loadBookmarks(): Promise<void> {
-  const response = await sendToBackground({ type: 'BOOKMARK_GET_ALL' });
-  bookmarks = response.ok && response.bookmarks ? response.bookmarks : [];
-  renderBookmarks();
+  const readId = ++bookmarkReadId;
+  bookmarkReadPending = true;
+  bookmarkReadFailed = false;
+  bmLoadStatus.hidden = false;
+  bmLoadStatus.textContent = '正在讀取書籤…';
+  bmLoadStatus.title = '';
+  bmRetry.hidden = true;
+  bmEmpty.hidden = true;
+  try {
+    // Extension 頁面和背景使用同一份 local storage；清單不依賴背景啟動／通訊。
+    const stored = await getAllBookmarks();
+    if (readId !== bookmarkReadId) {
+      return;
+    }
+    bookmarks = stored;
+    bookmarksLoaded = true;
+    bookmarkReadPending = false;
+    renderBookmarks();
+    bmLoadStatus.hidden = true;
+  } catch (error) {
+    if (readId !== bookmarkReadId) {
+      return;
+    }
+    const detail = error instanceof Error ? error.message : '請稍後重試。';
+    const message = `書籤讀取失敗：${detail}`;
+    bookmarkReadPending = false;
+    bookmarkReadFailed = true;
+    bmLoadStatus.textContent = message;
+    bmLoadStatus.title = message;
+    bmRetry.hidden = false;
+    // 保留已載入的清單；讀取失敗不代表沒有書籤。
+  }
   updateAddAvailability();
 }
 
@@ -576,6 +613,7 @@ function bindEvents(): void {
   bmSearch.addEventListener('input', () => {
     renderBookmarks();
   });
+  bmRetry.addEventListener('click', () => void loadBookmarks());
 }
 
 async function loadActiveTab(): Promise<void> {
@@ -631,34 +669,53 @@ function scheduleZoomRefresh(): void {
 }
 
 function bindLiveUpdates(): void {
-  chrome.tabs.onActivated.addListener(() => scheduleActiveTabReload());
-  chrome.tabs.onUpdated.addListener((updatedTabId, info) => {
-    if (updatedTabId === tabId && (info.status === 'complete' || typeof info.url === 'string')) {
-      scheduleActiveTabReload();
-    }
-  });
-  chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== 'local') {
-      return;
-    }
-    const keys = Object.keys(changes);
-    if (keys.some((key) => key.startsWith(BM_DATA_PREFIX))) {
-      void loadBookmarks();
-    }
-    // zoom 狀態 key = STORAGE_PREFIX 開頭但非 bm:: (例：axure-scale::https://.../page.html)。
-    // 任一 zoom key 變動(快捷鍵縮放/重置)就向 frame 問現值同步顯示。
-    if (keys.some((key) => key.startsWith(STORAGE_PREFIX) && !key.startsWith(BM_DATA_PREFIX))) {
-      scheduleZoomRefresh();
-    }
-  });
+  // 常駐側欄的即時更新為附加功能，個別事件不可用不能阻止書籤首次載入。
+  try {
+    chrome.tabs?.onActivated?.addListener(() => scheduleActiveTabReload());
+  } catch { /* 外掛更新後或未支援的事件可能無法註冊。 */ }
+  try {
+    chrome.tabs?.onUpdated?.addListener((updatedTabId, info) => {
+      if (updatedTabId === tabId && (info.status === 'complete' || typeof info.url === 'string')) {
+        scheduleActiveTabReload();
+      }
+    });
+  } catch { /* 未支援時仍可重開 popup 更新狀態。 */ }
+  try {
+    chrome.storage?.onChanged?.addListener((changes, area) => {
+      if (area !== 'local') {
+        return;
+      }
+      const keys = Object.keys(changes);
+      if (keys.some((key) => key.startsWith(BM_DATA_PREFIX))) {
+        void loadBookmarks();
+      }
+      // 任一 zoom key 變動(快捷鍵縮放/重置)就向 frame 問現值同步顯示。
+      if (keys.some((key) => key.startsWith(STORAGE_PREFIX) && !key.startsWith(BM_DATA_PREFIX))) {
+        scheduleZoomRefresh();
+      }
+    });
+  } catch { /* 書籤讀取與手動重試不依賴即時事件。 */ }
 }
 
 async function bootstrap(): Promise<void> {
   setControlsDisabled(true);
   bindEvents();
-  bindLiveUpdates();
-  mountTabCleanup(must<HTMLElement>('#tabCleanup'));
   void loadBookmarks();
+  bindLiveUpdates();
+  bindHubTabs(must<HTMLElement>('#linkHub'));
+  const cleanupCount = must<HTMLSpanElement>('#cleanupCount');
+  const cleanupRoot = must<HTMLElement>('#tabCleanup');
+  try {
+    mountTabCleanup(cleanupRoot, {
+      compact: true,
+      onCandidatesChange: (count) => {
+        cleanupCount.textContent = String(count);
+        cleanupCount.hidden = count === 0;
+      }
+    });
+  } catch {
+    cleanupRoot.textContent = '清理頁籤暫時無法載入，請重新開啟浮動視窗。';
+  }
   await loadActiveTab();
 }
 
