@@ -3,6 +3,7 @@ import type { ContentMessage, ContentResponse, RuntimeMessage, RuntimeResponse, 
 import { toUrlKey } from '../shared/url';
 import { adjustZoom, toZoomLevel } from '../shared/zoom';
 import { applyZoom, findAxureRoot, getShortcutDelta, isEditableTarget, isLikelyAxureDocument, resetZoom } from './engine';
+import { installHorizontalPan } from './horizontal-pan';
 import { showPromptCard } from './promptCard';
 
 interface ContentState {
@@ -136,7 +137,7 @@ function handleShortcuts(): void {
 // - Chrome / Windows：呈現為 ctrlKey=true 的 wheel 事件（也涵蓋 Ctrl+滾輪縮放）。
 // - Safari：WebKit 專屬的 gesturestart/gesturechange/gestureend，event.scale 為相對起點的累積倍率。
 // 兩條路徑都 preventDefault 掉瀏覽器原生頁面縮放，改套用外掛縮放；僅在 Axure 文件上生效。
-function handlePinchZoom(): void {
+function handlePinchZoom(): () => boolean {
   let gestureActive = false;
   let gestureBaseZoom: ZoomLevel = DEFAULT_ZOOM as ZoomLevel;
 
@@ -206,6 +207,8 @@ function handlePinchZoom(): void {
     }
     void persistZoom(state.zoom);
   });
+
+  return () => gestureActive;
 }
 
 async function applyShortcutAction(type: ShortcutMessageType): Promise<ZoomLevel> {
@@ -340,7 +343,7 @@ function handlePopupMessages(): void {
 async function bootstrap(): Promise<void> {
   handlePopupMessages();
   handleShortcuts();
-  handlePinchZoom();
+  const isPinching = handlePinchZoom();
 
   const foundRoot = findAxureRoot();
   const isAxure = isLikelyAxureDocument(foundRoot);
@@ -354,6 +357,7 @@ async function bootstrap(): Promise<void> {
   state.root = isAxure ? foundRoot : null;
 
   if (state.isAxure) {
+    installHorizontalPan(isPinching);
     await initializeFromStorage();
     applyCurrentZoom();
   }
