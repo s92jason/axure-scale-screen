@@ -44,4 +44,18 @@ describe('isRuntimeMessage', () => {
     expect(isRuntimeMessage({ type: 'NOPE' })).toBe(false);
     expect(isRuntimeMessage(null)).toBe(false);
   });
+
+  it('accepts completed-tab queries and valid tab IDs', () => {
+    expect(isRuntimeMessage({ type: 'AXURE_GET_COMPLETED_TABS' })).toBe(true);
+    expect(isRuntimeMessage({ type: 'AXURE_CLOSE_COMPLETED_TABS', tabIds: [0, 7, 12] })).toBe(true);
+    expect(isRuntimeMessage({ type: 'AXURE_CLOSE_COMPLETED_TABS', tabIds: [] })).toBe(true);
+  });
+
+  it('rejects missing tab IDs and unsafe values before tabs can be closed', () => {
+    expect(isRuntimeMessage({ type: 'AXURE_CLOSE_COMPLETED_TABS' })).toBe(false);
+    expect(isRuntimeMessage({ type: 'AXURE_CLOSE_COMPLETED_TABS', tabIds: '7' })).toBe(false);
+    for (const id of [-1, 1.2, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1, '7', null]) {
+      expect(isRuntimeMessage({ type: 'AXURE_CLOSE_COMPLETED_TABS', tabIds: [id] })).toBe(false);
+    }
+  });
 });

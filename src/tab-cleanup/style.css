@@ -1,0 +1,33 @@
+.tab-cleanup {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  background: var(--field-bg);
+  color: var(--text);
+}
+.tab-cleanup-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tab-cleanup h2 { margin: 0; font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: 0; }
+.tab-cleanup button {
+  font: inherit;
+  font-size: 12px;
+  padding: 7px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--field-bg);
+  color: var(--text);
+  cursor: pointer;
+}
+.tab-cleanup button:hover:enabled { background: var(--accent-soft); }
+.tab-cleanup button:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 2px; }
+.tab-cleanup button:disabled { opacity: 0.5; cursor: default; }
+.tab-cleanup-description, .tab-cleanup-status { font-size: 12px; line-height: 1.6; margin: 10px 0; }
+.tab-cleanup-description { color: var(--text-2); }
+.tab-cleanup-list { list-style: none; padding: 0; margin: 10px 0; max-height: 190px; overflow-y: auto; }
+.tab-cleanup-list li { padding: 9px 0; border-top: 1px solid var(--hairline); }
+.tab-cleanup-list strong, .tab-cleanup-list span, .tab-cleanup-list small { display: block; overflow-wrap: anywhere; }
+.tab-cleanup-list strong { font-size: 13px; font-weight: 600; }
+.tab-cleanup-list span { font-size: 12px; margin-top: 3px; }
+.tab-cleanup-list small { font-size: 11px; color: var(--text-2); margin-top: 3px; }
+.tab-cleanup .tab-cleanup-close { width: 100%; color: var(--accent-text); background: var(--accent-soft); border-color: var(--accent-ring); }
+.panel > .tab-cleanup { margin: 16px; }

@@ -21,6 +21,7 @@ import { toProjectKey } from '../shared/projectKey';
 import { getZoomState, resetZoomState, setZoomState } from '../shared/storage';
 import { planSync } from '../shared/syncPlan';
 import { isRuntimeMessage } from '../shared/types';
+import { closeCompletedTabs, getCompletedTabs } from './tab-cleanup';
 
 // ── Chrome 真實書籤同步(單向 push：plugin → Chrome 書籤) ──────────
 // Safari 沒有 chrome.bookmarks，全程 feature-detect；失敗不影響其他功能。
@@ -419,6 +420,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           await removeFolder(message.name);
           sendResponse({ ok: true, folders: await getFolders() });
           maybeSync();
+          return;
+        }
+        case 'AXURE_GET_COMPLETED_TABS': {
+          sendResponse({ ok: true, completedTabs: await getCompletedTabs() });
+          return;
+        }
+        case 'AXURE_CLOSE_COMPLETED_TABS': {
+          sendResponse(await closeCompletedTabs(message.tabIds));
           return;
         }
         case 'SETTINGS_GET': {

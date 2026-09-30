@@ -1,7 +1,8 @@
-import { STORAGE_PREFIX } from '../shared/constants';
+import { COMPLETED_FOLDER, STORAGE_PREFIX } from '../shared/constants';
 import { toNetscapeBookmarks } from '../shared/netscape';
 import type { AxureBookmark, RuntimeMessage, RuntimeResponse, Settings } from '../shared/types';
 import { toEntryUrl } from '../shared/url';
+import { mountTabCleanup } from '../tab-cleanup/panel';
 
 const FILTER_ALL = '__all__';
 const FILTER_NONE = '__none__';
@@ -204,10 +205,16 @@ function renderFolders(): void {
     label.textContent = `${folder}（${countIn(folder)}）`;
 
     const actions = document.createElement('span');
-    actions.append(
-      actionButton('改名', () => void renameFolderUI(folder)),
-      actionButton('刪除', () => void removeFolderUI(folder), 'danger')
-    );
+    if (folder === COMPLETED_FOLDER) {
+      actions.className = 'folder-fixed';
+      actions.textContent = '固定分組';
+      actions.title = '「已完成」不能改名或刪除';
+    } else {
+      actions.append(
+        actionButton('改名', () => void renameFolderUI(folder)),
+        actionButton('刪除', () => void removeFolderUI(folder), 'danger')
+      );
+    }
 
     li.append(label, actions);
     folderListEl.appendChild(li);
@@ -542,6 +549,9 @@ async function addFolderUI(): Promise<void> {
 }
 
 async function renameFolderUI(folder: string): Promise<void> {
+  if (folder === COMPLETED_FOLDER) {
+    return;
+  }
   const newName = window.prompt('分組新名稱', folder);
   if (newName && newName.trim() && newName.trim() !== folder) {
     await send({ type: 'BOOKMARK_RENAME_FOLDER', name: folder, newName: newName.trim() });
@@ -550,6 +560,9 @@ async function renameFolderUI(folder: string): Promise<void> {
 }
 
 async function removeFolderUI(folder: string): Promise<void> {
+  if (folder === COMPLETED_FOLDER) {
+    return;
+  }
   const n = countIn(folder);
   const note = n > 0 ? `\n該分組的 ${n} 筆書籤會退回「未分組」（不會刪除書籤）。` : '';
   if (window.confirm(`刪除分組「${folder}」？${note}`)) {
@@ -664,4 +677,5 @@ chrome.storage.onChanged.addListener((changes, area) => {
   reloadTimer = window.setTimeout(() => void reloadData(), 150);
 });
 
+mountTabCleanup(must<HTMLElement>('#tabCleanup'));
 void load();
