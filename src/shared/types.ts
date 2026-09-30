@@ -22,6 +22,14 @@ export interface AxureBookmark {
   visitCount: number;
 }
 
+export interface CompletedAxureTab {
+  tabId: number;
+  projectKey: string;
+  name: string;
+  url: string;
+  title: string;
+}
+
 export interface Settings {
   promptMode: 'card' | 'badge';
   // parentFolderId 現在語意為「直接同步進此資料夾」的目標資料夾 id
@@ -47,6 +55,8 @@ export type RuntimeMessage =
   | { type: 'BOOKMARK_ADD_FOLDER'; name: string }
   | { type: 'BOOKMARK_RENAME_FOLDER'; name: string; newName: string }
   | { type: 'BOOKMARK_REMOVE_FOLDER'; name: string }
+  | { type: 'AXURE_GET_COMPLETED_TABS' }
+  | { type: 'AXURE_CLOSE_COMPLETED_TABS'; tabIds: number[] }
   | { type: 'SETTINGS_GET' }
   | { type: 'SETTINGS_SET'; settings: Settings }
   | { type: 'SYNC_NOW' };
@@ -61,8 +71,10 @@ export type RuntimeResponse =
       folders?: string[];
       settings?: Settings;
       syncedCount?: number;
+      completedTabs?: CompletedAxureTab[];
+      closedCount?: number;
     }
-  | { ok: false; error: string };
+  | { ok: false; error: string; completedTabs?: CompletedAxureTab[]; closedCount?: number };
 
 export type ContentMessage =
   | { type: 'CONTENT_GET_STATE' }
@@ -88,6 +100,10 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0;
 }
 
+export function isValidTabId(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+}
+
 export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
   if (typeof value !== 'object' || value === null) {
     return false;
@@ -108,10 +124,15 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
     candidate.type === 'BOOKMARK_DETECTED' ||
     candidate.type === 'BOOKMARK_GET_IGNORED' ||
     candidate.type === 'BOOKMARK_GET_FOLDERS' ||
+    candidate.type === 'AXURE_GET_COMPLETED_TABS' ||
     candidate.type === 'SETTINGS_GET' ||
     candidate.type === 'SYNC_NOW'
   ) {
     return true;
+  }
+
+  if (candidate.type === 'AXURE_CLOSE_COMPLETED_TABS') {
+    return Array.isArray(candidate.tabIds) && candidate.tabIds.every(isValidTabId);
   }
 
   if (candidate.type === 'SETTINGS_SET') {

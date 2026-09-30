@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { COMPLETED_FOLDER, STORAGE_PREFIX } from '../../src/shared/constants';
 import {
   DEFAULT_FOLDERS,
   addBookmark,
@@ -19,8 +20,7 @@ import {
   unignoreProject
 } from '../../src/shared/bookmarkStore';
 
-function installChromeMock(): void {
-  const data: Record<string, unknown> = {};
+function installChromeMock(data: Record<string, unknown> = {}): void {
   vi.stubGlobal('chrome', {
     runtime: { lastError: undefined },
     storage: {
@@ -110,6 +110,30 @@ describe('bookmarkStore', () => {
     expect(await getFolders()).toEqual(DEFAULT_FOLDERS);
   });
 
+  it('restores the completed folder for existing users without restoring optional defaults', async () => {
+    const foldersKey = `${STORAGE_PREFIX}bm::folders`;
+    const data = { [foldersKey]: ['客製分組', '舊的完成名稱'] };
+    installChromeMock(data);
+    await addBookmark({ projectKey: 'k', name: 'n', url: 'u', folder: '舊的完成名稱' });
+
+    expect(await getFolders()).toEqual(['客製分組', '舊的完成名稱', COMPLETED_FOLDER]);
+    expect(data[foldersKey]).toEqual(['客製分組', '舊的完成名稱', COMPLETED_FOLDER]);
+    expect(await getFolders()).toEqual(['客製分組', '舊的完成名稱', COMPLETED_FOLDER]);
+    expect((await getBookmark('k'))?.folder).toBe('舊的完成名稱');
+  });
+
+  it('restores only the completed folder when all folders were removed', async () => {
+    installChromeMock({ [`${STORAGE_PREFIX}bm::folders`]: [] });
+
+    expect(await getFolders()).toEqual([COMPLETED_FOLDER]);
+  });
+
+  it('preserves the existing position of the completed folder', async () => {
+    installChromeMock({ [`${STORAGE_PREFIX}bm::folders`]: [COMPLETED_FOLDER, '客製分組'] });
+
+    expect(await getFolders()).toEqual([COMPLETED_FOLDER, '客製分組']);
+  });
+
   it('adds a folder without duplicating', async () => {
     await addFolder('新組');
     await addFolder('新組');
@@ -126,12 +150,48 @@ describe('bookmarkStore', () => {
     expect((await getBookmark('k'))?.folder).toBe('新');
   });
 
+  it('rejects renaming the completed folder and preserves its bookmarks', async () => {
+    await addBookmark({ projectKey: 'k', name: 'n', url: 'u', folder: COMPLETED_FOLDER });
+    const folders = await getFolders();
+    const bookmark = await getBookmark('k');
+
+    await expect(renameFolder(COMPLETED_FOLDER, '新名稱')).rejects.toThrow('不能改名');
+    await expect(renameFolder(COMPLETED_FOLDER, '進行中')).rejects.toThrow('不能改名');
+
+    expect(await getFolders()).toEqual(folders);
+    expect(await getBookmark('k')).toEqual(bookmark);
+  });
+
+  it('allows merging a normal folder into the completed folder', async () => {
+    await addFolder('待歸檔');
+    await addBookmark({ projectKey: 'pending', name: 'Pending', url: 'u', folder: '待歸檔' });
+    await addBookmark({ projectKey: 'completed', name: 'Completed', url: 'v', folder: COMPLETED_FOLDER });
+
+    await renameFolder('待歸檔', ` ${COMPLETED_FOLDER} `);
+
+    expect(await getFolders()).not.toContain('待歸檔');
+    expect((await getFolders()).filter((folder) => folder === COMPLETED_FOLDER)).toHaveLength(1);
+    expect((await getBookmark('pending'))?.folder).toBe(COMPLETED_FOLDER);
+    expect((await getBookmark('completed'))?.folder).toBe(COMPLETED_FOLDER);
+  });
+
   it('removes a folder and sends its bookmarks back to ungrouped', async () => {
     await addFolder('暫存');
     await addBookmark({ projectKey: 'k', name: 'n', url: 'u', folder: '暫存' });
     await removeFolder('暫存');
     expect(await getFolders()).not.toContain('暫存');
     expect((await getBookmark('k'))?.folder).toBe('');
+  });
+
+  it('rejects removing the completed folder and preserves its bookmarks', async () => {
+    await addBookmark({ projectKey: 'k', name: 'n', url: 'u', folder: COMPLETED_FOLDER });
+    const folders = await getFolders();
+    const bookmark = await getBookmark('k');
+
+    await expect(removeFolder(COMPLETED_FOLDER)).rejects.toThrow('不能刪除');
+
+    expect(await getFolders()).toEqual(folders);
+    expect(await getBookmark('k')).toEqual(bookmark);
   });
 
   it('ignoreBookmark removes the bookmark and adds to ignore list', async () => {

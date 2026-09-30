@@ -4,6 +4,7 @@ export const ZOOM_STEP = 10;
 export const DEFAULT_ZOOM = 100;
 
 export const STORAGE_PREFIX = 'axure-scale::';
+export const COMPLETED_FOLDER = '已完成';
 
 export const AXURE_ROOT_SELECTORS = [
   '#base',

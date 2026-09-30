@@ -1,4 +1,4 @@
-import { STORAGE_PREFIX } from './constants';
+import { COMPLETED_FOLDER, STORAGE_PREFIX } from './constants';
 import { getStorageValue, setStorageValue } from './storage';
 import type { AxureBookmark, Settings } from './types';
 
@@ -27,8 +27,8 @@ const DEFAULT_SETTINGS: Settings = {
   chromeSync: { enabled: false, parentFolderId: null }
 };
 
-// 首次使用時種入的預設分組(之後使用者可自由新增/改名/刪除)。
-export const DEFAULT_FOLDERS = ['進行中', '待確認', '已完成', '參考'];
+// 首次使用時種入的預設分組；只有「已完成」固定保留，其餘可自由改名或刪除。
+export const DEFAULT_FOLDERS = ['進行中', '待確認', COMPLETED_FOLDER, '參考'];
 
 async function readItems(): Promise<Record<string, AxureBookmark>> {
   return (await getStorageValue<Record<string, AxureBookmark>>(ITEMS_KEY)) ?? {};
@@ -153,6 +153,11 @@ export async function getFolders(): Promise<string[]> {
     await setStorageValue(FOLDERS_KEY, DEFAULT_FOLDERS);
     return [...DEFAULT_FOLDERS];
   }
+  if (!stored.includes(COMPLETED_FOLDER)) {
+    const folders = [...stored, COMPLETED_FOLDER];
+    await setStorageValue(FOLDERS_KEY, folders);
+    return folders;
+  }
   return stored;
 }
 
@@ -167,6 +172,9 @@ export async function addFolder(name: string): Promise<string[]> {
 }
 
 export async function renameFolder(oldName: string, newName: string): Promise<void> {
+  if (oldName === COMPLETED_FOLDER) {
+    throw new Error('「已完成」是固定分組，不能改名。');
+  }
   const trimmed = newName.trim();
   if (!trimmed || trimmed === oldName) {
     return;
@@ -200,6 +208,9 @@ export async function renameFolder(oldName: string, newName: string): Promise<vo
 }
 
 export async function removeFolder(name: string): Promise<void> {
+  if (name === COMPLETED_FOLDER) {
+    throw new Error('「已完成」是固定分組，不能刪除。');
+  }
   const folders = await getFolders();
   const next = folders.filter((folder) => folder !== name);
   if (next.length !== folders.length) {

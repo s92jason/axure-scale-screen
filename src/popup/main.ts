@@ -10,6 +10,7 @@ import type {
 } from '../shared/types';
 import { toEntryUrl } from '../shared/url';
 import { adjustZoom, toZoomLevel } from '../shared/zoom';
+import { mountTabCleanup } from '../tab-cleanup/panel';
 
 function must<T extends HTMLElement>(selector: string): T {
   const el = document.querySelector<T>(selector);
@@ -656,6 +657,7 @@ async function bootstrap(): Promise<void> {
   setControlsDisabled(true);
   bindEvents();
   bindLiveUpdates();
+  mountTabCleanup(must<HTMLElement>('#tabCleanup'));
   void loadBookmarks();
   await loadActiveTab();
 }
