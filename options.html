@@ -34,7 +34,7 @@
             <p class="sub">自動偵測、收藏、分組、匯出與同步你的 Axure 原型連結。</p>
           </div>
         </div>
-        <button id="export" class="btn primary" type="button">匯出 bookmarks.html</button>
+        <button id="export" class="btn primary" type="button" disabled>匯出 bookmarks.html</button>
       </header>
 
       <div class="toolbar">
@@ -45,6 +45,11 @@
           <option value="name">名稱</option>
           <option value="count">開啟次數</option>
         </select>
+      </div>
+
+      <div id="bookmarkLoadFeedback" class="bookmark-load-feedback">
+        <p id="bookmarkLoadStatus" role="status" aria-live="polite">正在讀取書籤…</p>
+        <button id="bookmarkRetry" class="btn" type="button" hidden>重新讀取</button>
       </div>
 
       <table class="list">

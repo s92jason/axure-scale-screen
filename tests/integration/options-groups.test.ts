@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { STORAGE_PREFIX } from '../../src/shared/constants';
 import type { AxureBookmark, RuntimeMessage, RuntimeResponse } from '../../src/shared/types';
 
 const optionsHtml = readFileSync(resolve('options.html'), 'utf8');
@@ -53,7 +54,22 @@ beforeEach(() => {
   vi.stubGlobal('chrome', {
     runtime: { sendMessage },
     tabs: { onCreated: event(), onRemoved: event(), onUpdated: event() },
-    storage: { onChanged: event() }
+    storage: {
+      onChanged: event(),
+      local: {
+        get: vi.fn((key: string, callback: (result: Record<string, unknown>) => void) => {
+          const data: Record<string, unknown> = {
+            [`${STORAGE_PREFIX}bm::items`]: Object.fromEntries(bookmarks.map((bookmark) => [bookmark.projectKey, bookmark])),
+            [`${STORAGE_PREFIX}bm::folders`]: folders,
+            [`${STORAGE_PREFIX}bm::ignored`]: [],
+            [`${STORAGE_PREFIX}bm::settings`]: { promptMode: 'card', chromeSync: { enabled: false, parentFolderId: null } }
+          };
+          callback({ [key]: data[key] });
+        }),
+        set: vi.fn(),
+        remove: vi.fn()
+      }
+    }
   });
   vi.spyOn(navigator, 'vendor', 'get').mockReturnValue('Apple Computer, Inc.');
 });

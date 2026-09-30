@@ -8,14 +8,25 @@ function toStorageKey(urlKey: string): string {
 
 export function getStorageValue<T>(key: string): Promise<T | undefined> {
   return new Promise((resolve, reject) => {
-    chrome.storage.local.get(key, (result) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-        return;
-      }
+    const timer = setTimeout(() => reject(new Error('本機資料讀取逾時，請重新讀取。')), 5000);
+    try {
+      chrome.storage.local.get(key, (result) => {
+        clearTimeout(timer);
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        if (!result || typeof result !== 'object') {
+          reject(new Error('本機資料沒有回應，請重新讀取。'));
+          return;
+        }
 
-      resolve(result[key] as T | undefined);
-    });
+        resolve(result[key] as T | undefined);
+      });
+    } catch (error) {
+      clearTimeout(timer);
+      reject(error);
+    }
   });
 }
 

@@ -52,6 +52,30 @@ export function mountTabCleanup(
   let reloadPending = false;
   let timer: number | undefined;
   let notice = '';
+  const removeListeners: Array<() => void> = [];
+
+  // 即時更新是附加功能；個別瀏覽器事件不可用時仍可手動掃描，且不能阻止書籤載入。
+  function listen<T extends (...args: never[]) => void>(
+    getEvent: () => { addListener(listener: T): void; removeListener?(listener: T): void } | undefined,
+    listener: T
+  ): void {
+    try {
+      const event = getEvent();
+      if (typeof event?.addListener !== 'function') {
+        return;
+      }
+      event.addListener(listener);
+      removeListeners.push(() => {
+        try {
+          event.removeListener?.(listener);
+        } catch {
+          // 更新或關閉外掛後事件物件可能失效，仍需清理其餘監聽。
+        }
+      });
+    } catch {
+      // 有些瀏覽器會在存取或註冊不支援的事件時拋錯。
+    }
+  }
 
   function updateStatus(text: string): void {
     status.textContent = text;
@@ -172,18 +196,17 @@ export function mountTabCleanup(
 
   refresh.addEventListener('click', () => void scan());
   close.addEventListener('click', () => void closeAll());
-  chrome.tabs.onCreated.addListener(scheduleRefresh);
-  chrome.tabs.onRemoved.addListener(scheduleRefresh);
-  chrome.tabs.onUpdated.addListener(onUpdated);
-  chrome.storage.onChanged.addListener(onStorageChanged);
+  listen(() => chrome.tabs?.onCreated, scheduleRefresh);
+  listen(() => chrome.tabs?.onRemoved, scheduleRefresh);
+  listen(() => chrome.tabs?.onUpdated, onUpdated);
+  listen(() => chrome.storage?.onChanged, onStorageChanged);
   void scan();
 
   return () => {
     disposed = true;
     window.clearTimeout(timer);
-    chrome.tabs.onCreated.removeListener(scheduleRefresh);
-    chrome.tabs.onRemoved.removeListener(scheduleRefresh);
-    chrome.tabs.onUpdated.removeListener(onUpdated);
-    chrome.storage.onChanged.removeListener(onStorageChanged);
+    for (const removeListener of removeListeners.splice(0)) {
+      removeListener();
+    }
   };
 }

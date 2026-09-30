@@ -91,6 +91,17 @@ function status(): string {
   return root.querySelector('.tab-cleanup-status')!.textContent!;
 }
 
+const browserEvents = [
+  ['tabs', 'onCreated'],
+  ['tabs', 'onRemoved'],
+  ['tabs', 'onUpdated'],
+  ['storage', 'onChanged']
+] as const;
+
+function eventObjects() {
+  return { onCreated, onRemoved, onUpdated, onChanged };
+}
+
 describe('completed Axure tab cleanup panel', () => {
   it('keeps the compact cleanup count in sync with scanning and closing', async () => {
     const onCandidatesChange = vi.fn();
@@ -262,6 +273,117 @@ describe('completed Axure tab cleanup panel', () => {
     expect(onUpdated.listeners.size).toBe(0);
     expect(onChanged.listeners.size).toBe(0);
     expect(sendMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(browserEvents)('keeps scanning when %s.%s is unavailable', async (namespace, eventName) => {
+    const api = namespace === 'tabs' ? chrome.tabs : chrome.storage;
+    Reflect.deleteProperty(api, eventName);
+
+    await mount();
+
+    expect(status()).toContain('2 個已完成頁籤');
+    expect(root.querySelectorAll('li')).toHaveLength(2);
+    scanResponse = { ok: true, completedTabs: [secondTab] };
+    root.querySelector<HTMLButtonElement>('.tab-cleanup-refresh')!.click();
+    await Promise.resolve();
+    expect(root.querySelectorAll('li')).toHaveLength(1);
+
+    dispose!();
+    for (const [name, event] of Object.entries(eventObjects())) {
+      expect(event.removeListener).toHaveBeenCalledTimes(name === eventName ? 0 : 1);
+      expect(event.listeners.size).toBe(0);
+    }
+  });
+
+  it.each(['tabs', 'storage'] as const)('keeps scanning without the %s namespace', async (namespace) => {
+    Reflect.deleteProperty(chrome, namespace);
+
+    await mount();
+
+    expect(status()).toContain('2 個已完成頁籤');
+    expect(() => dispose!()).not.toThrow();
+  });
+
+  it.each(browserEvents)('isolates a throwing %s.%s getter', async (namespace, eventName) => {
+    const api = namespace === 'tabs' ? chrome.tabs : chrome.storage;
+    Object.defineProperty(api, eventName, {
+      configurable: true,
+      get: () => {
+        throw new Error('瀏覽器事件不可用');
+      }
+    });
+
+    await mount();
+
+    expect(status()).toContain('2 個已完成頁籤');
+    expect(() => dispose!()).not.toThrow();
+    for (const [name, event] of Object.entries(eventObjects())) {
+      expect(event.removeListener).toHaveBeenCalledTimes(name === eventName ? 0 : 1);
+    }
+  });
+
+  it.each(browserEvents)('isolates a throwing %s.%s registration', async (_namespace, eventName) => {
+    eventObjects()[eventName].addListener.mockImplementationOnce(() => {
+      throw new Error('無法註冊瀏覽器事件');
+    });
+
+    await mount();
+
+    expect(status()).toContain('2 個已完成頁籤');
+    expect(() => dispose!()).not.toThrow();
+    for (const [name, event] of Object.entries(eventObjects())) {
+      expect(event.removeListener).toHaveBeenCalledTimes(name === eventName ? 0 : 1);
+      expect(event.listeners.size).toBe(0);
+    }
+  });
+
+  it.each(browserEvents)('continues disposing after %s.%s removal throws', async (_namespace, eventName) => {
+    await mount();
+    eventObjects()[eventName].removeListener.mockImplementationOnce(() => {
+      throw new Error('事件物件已失效');
+    });
+
+    expect(() => dispose!()).not.toThrow();
+
+    for (const [name, event] of Object.entries(eventObjects())) {
+      expect(event.removeListener).toHaveBeenCalledTimes(1);
+      expect(event.listeners.size).toBe(name === eventName ? 1 : 0);
+    }
+    onCreated.emit({ id: 30 } as chrome.tabs.Tab);
+    onRemoved.emit(12, { windowId: 1, isWindowClosing: false });
+    onUpdated.emit(27, { url: secondTab.url }, { id: 27 } as chrome.tabs.Tab);
+    onChanged.emit({ [`${STORAGE_PREFIX}bm::folders`]: { newValue: ['已完成'] } }, 'local');
+    await vi.advanceTimersByTimeAsync(200);
+    expect(sendMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it('continues disposing when an event loses its removeListener method', async () => {
+    await mount();
+    Reflect.deleteProperty(onCreated, 'removeListener');
+
+    expect(() => dispose!()).not.toThrow();
+    expect(onRemoved.listeners.size).toBe(0);
+    expect(onUpdated.listeners.size).toBe(0);
+    expect(onChanged.listeners.size).toBe(0);
+    onCreated.emit({ id: 30 } as chrome.tabs.Tab);
+    await vi.advanceTimersByTimeAsync(200);
+    expect(sendMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports runtime failures even when browser events are unavailable', async () => {
+    vi.stubGlobal('chrome', {
+      runtime: {
+        sendMessage: () => {
+          throw new Error('背景沒有回應');
+        }
+      }
+    });
+
+    await mount();
+
+    expect(status()).toContain('檢查失敗：背景沒有回應');
+    expect(closeButton().disabled).toBe(true);
+    expect(root.querySelector('.tab-cleanup-refresh')!.hasAttribute('disabled')).toBe(false);
   });
 
   it('renders project names and titles as text', async () => {

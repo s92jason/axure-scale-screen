@@ -147,6 +147,15 @@ export async function ignoreBookmark(projectKey: string): Promise<void> {
 
 // ── 受管分組清單 ──────────────────────────────────────────────
 // 分組是一等公民：清單獨立儲存，首次取用時種入預設分組。
+// 管理頁直接讀取同一份資料；顯示預設／固定分組不需要寫入或喚醒背景程式。
+export async function getStoredFolders(): Promise<string[]> {
+  const stored = await getStorageValue<string[]>(FOLDERS_KEY);
+  if (stored === undefined) {
+    return [...DEFAULT_FOLDERS];
+  }
+  return stored.includes(COMPLETED_FOLDER) ? stored : [...stored, COMPLETED_FOLDER];
+}
+
 export async function getFolders(): Promise<string[]> {
   const stored = await getStorageValue<string[]>(FOLDERS_KEY);
   if (stored === undefined) {

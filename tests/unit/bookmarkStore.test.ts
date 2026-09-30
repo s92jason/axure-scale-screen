@@ -7,6 +7,7 @@ import {
   getAllBookmarks,
   getBookmark,
   getFolders,
+  getStoredFolders,
   getSettings,
   ignoreBookmark,
   ignoreProject,
@@ -108,6 +109,18 @@ describe('bookmarkStore', () => {
 
   it('seeds default folders on first read', async () => {
     expect(await getFolders()).toEqual(DEFAULT_FOLDERS);
+  });
+
+  it('reads display folders without seeding or changing existing local data', async () => {
+    const foldersKey = `${STORAGE_PREFIX}bm::folders`;
+    const data: Record<string, unknown> = {};
+    installChromeMock(data);
+    expect(await getStoredFolders()).toEqual(DEFAULT_FOLDERS);
+    expect(data).toEqual({});
+
+    data[foldersKey] = ['客製分組'];
+    expect(await getStoredFolders()).toEqual(['客製分組', COMPLETED_FOLDER]);
+    expect(data[foldersKey]).toEqual(['客製分組']);
   });
 
   it('restores the completed folder for existing users without restoring optional defaults', async () => {

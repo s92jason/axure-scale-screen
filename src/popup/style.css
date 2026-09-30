@@ -315,8 +315,8 @@ button.block { width: 100%; }
 .hub-tabs [role="tab"]:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 1px; }
 .hub-count { min-width: 17px; padding: 1px 5px; border-radius: 99px; background: var(--accent-soft-2); color: var(--accent-text); font-size: 10px; }
 .hub-count[hidden] { display: none; }
-.hub-panels { flex: 1; min-height: 0; }
-.hub-panels > [role="tabpanel"] { height: 100%; min-height: 0; }
+.hub-panels { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.hub-panels > [role="tabpanel"] { flex: 1; min-height: 0; }
 .hub-panels > [hidden] { display: none; }
 
 /* ─── Bookmarks (available even in error states) ─── */
@@ -419,6 +419,10 @@ button.block { width: 100%; }
 
 .bm-empty { margin: 2px 0 0; padding: 8px 4px 4px; font-size: 11px; line-height: 1.5; color: var(--text-3); text-align: center; }
 .bm-empty[hidden] { display: none; }
+
+.bm-load-status { flex-shrink: 0; margin: 4px 0; font-size: 11px; line-height: 1.5; color: var(--text-2); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.bm-retry { flex-shrink: 0; align-self: flex-end; padding: 5px 9px; margin: 0 0 4px; font-size: 11px; }
+.bm-load-status[hidden], .bm-retry[hidden] { display: none; }
 
 .bm-manage {
   width: 100%;
