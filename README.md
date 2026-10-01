@@ -35,7 +35,7 @@ npm install
 npm run build
 ```
 
-建置輸出位於 `dist/`。
+建置輸出位於 `dist/`，並同步到 `AxureScaleScreen-extention/` 供 Chrome 載入。
 
 ## 在 Safari 執行（macOS 14+ / Safari 17+）
 1. 先建置 extension：
@@ -58,9 +58,11 @@ npm run build
    npm run build
    ```
 2. 打開 `chrome://extensions`，開啟右上角「開發人員模式」。
-3. 點「載入未封裝項目」，選擇 `dist/` 資料夾。
+3. 點「載入未封裝項目」，選擇 `AxureScaleScreen-extention/` 資料夾。
 4. 若要在本機 `file://` Axure 匯出檔使用，請到該擴充功能的「詳細資料」頁面，開啟「允許存取檔案網址」。
 5. 打開 Axure 頁面後，點選外掛圖示開始調整縮放。
+
+每次更新程式後執行 `npm run build`，再到 `chrome://extensions` 按外掛的「重新載入」。建置會完整同步這個固定資料夾；Safari 轉換流程使用 `dist/`。
 
 注意事項：
 - 縮放快捷鍵 `Cmd/Ctrl + Option + =/-/0` 由 content script 處理，安裝後即可使用，且不與瀏覽器內建縮放（`Cmd +/-`）衝突。
