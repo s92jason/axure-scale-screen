@@ -1,6 +1,7 @@
+import { mergeBackup, type BackupData } from './bookmarkBackup';
 import { COMPLETED_FOLDER, STORAGE_PREFIX } from './constants';
 import { getStorageValue, setStorageValue } from './storage';
-import type { AxureBookmark, Settings } from './types';
+import type { AxureBookmark, BookmarkBackup, Settings } from './types';
 
 // 單層書籤 schema(plan 附錄 B.5.1，2026-06-16 簡化)。
 // axshare 的子網域本身就是穩定身份，url 不會變，所以 projectKey 同時當「身份」與「去重 key」。
@@ -21,6 +22,7 @@ const ITEMS_KEY = `${BM_PREFIX}items`;
 const IGNORED_KEY = `${BM_PREFIX}ignored`;
 const SETTINGS_KEY = `${BM_PREFIX}settings`;
 const FOLDERS_KEY = `${BM_PREFIX}folders`;
+const BACKUP_META_KEY = `${BM_PREFIX}backup`;
 
 const DEFAULT_SETTINGS: Settings = {
   promptMode: 'card',
@@ -238,6 +240,38 @@ export async function removeFolder(name: string): Promise<void> {
   if (changed) {
     await writeItems(items);
   }
+}
+
+// ── JSON 備份 ────────────────────────────────────────────────
+// 匯出只讀不寫(分組用 getStoredFolders，不會順手種入預設分組)。
+export async function getBackupData(): Promise<BackupData> {
+  const [bookmarks, folders, ignored] = await Promise.all([getAllBookmarks(), getStoredFolders(), getIgnored()]);
+  return { bookmarks, folders, ignored };
+}
+
+export async function importBackup(backup: BookmarkBackup): Promise<{ added: number; skipped: number }> {
+  const [items, folders, ignored] = await Promise.all([readItems(), getFolders(), getIgnored()]);
+  const merged = mergeBackup({ items, folders, ignored }, backup);
+
+  if (merged.added > 0) {
+    await writeItems(merged.items);
+  }
+  if (merged.folders.length !== folders.length) {
+    await setStorageValue(FOLDERS_KEY, merged.folders);
+  }
+  if (merged.ignored.length !== ignored.length) {
+    await setStorageValue(IGNORED_KEY, merged.ignored);
+  }
+  return { added: merged.added, skipped: merged.skipped };
+}
+
+export async function getLastBackupAt(): Promise<number | null> {
+  const meta = await getStorageValue<{ lastExportedAt?: unknown }>(BACKUP_META_KEY);
+  return typeof meta?.lastExportedAt === 'number' ? meta.lastExportedAt : null;
+}
+
+export async function markBackupExported(at = Date.now()): Promise<void> {
+  await setStorageValue(BACKUP_META_KEY, { lastExportedAt: at });
 }
 
 export async function getSettings(): Promise<Settings> {

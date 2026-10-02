@@ -1,7 +1,16 @@
 import { COMPLETED_FOLDER, STORAGE_PREFIX } from '../shared/constants';
-import { getAllBookmarks, getIgnored, getSettings, getStoredFolders } from '../shared/bookmarkStore';
+import { backupFileName, createBackup, describeBackupAge, parseBackup } from '../shared/bookmarkBackup';
+import {
+  getAllBookmarks,
+  getBackupData,
+  getIgnored,
+  getLastBackupAt,
+  getSettings,
+  getStoredFolders,
+  markBackupExported
+} from '../shared/bookmarkStore';
 import { toNetscapeBookmarks } from '../shared/netscape';
-import type { AxureBookmark, RuntimeMessage, RuntimeResponse, Settings } from '../shared/types';
+import type { AxureBookmark, BookmarkBackup, RuntimeMessage, RuntimeResponse, Settings } from '../shared/types';
 import { toEntryUrl } from '../shared/url';
 import { mountTabCleanup } from '../tab-cleanup/panel';
 
@@ -28,6 +37,11 @@ const exportEl = must<HTMLButtonElement>('#export');
 const bookmarkLoadFeedbackEl = must<HTMLDivElement>('#bookmarkLoadFeedback');
 const bookmarkLoadStatusEl = must<HTMLParagraphElement>('#bookmarkLoadStatus');
 const bookmarkRetryEl = must<HTMLButtonElement>('#bookmarkRetry');
+const backupStatusEl = must<HTMLElement>('#backupStatus');
+const backupExportEl = must<HTMLButtonElement>('#backupExport');
+const backupImportEl = must<HTMLButtonElement>('#backupImport');
+const backupFileEl = must<HTMLInputElement>('#backupFile');
+const backupNoteEl = must<HTMLParagraphElement>('#backupNote');
 const newFolderEl = must<HTMLInputElement>('#newFolder');
 const addFolderEl = must<HTMLButtonElement>('#addFolder');
 const folderListEl = must<HTMLUListElement>('#folderList');
@@ -57,6 +71,7 @@ let bookmarksLoaded = false;
 let bookmarksLoading = false;
 let dataReloadId = 0;
 let settingsReloadId = 0;
+let lastBackupAt: number | null | undefined; // undefined = 尚未讀到
 const readErrors = new Map<string, string>();
 
 // 資料夾選擇器狀態
@@ -184,6 +199,18 @@ function rowFor(bm: AxureBookmark): HTMLTableRowElement {
 function render(): void {
   emptyEl.hidden = !bookmarksLoaded || bookmarksLoading || readErrors.has('書籤') || bookmarks.length > 0;
   rowsEl.replaceChildren(...applyView().map(rowFor));
+  renderBackupStatus();
+}
+
+function renderBackupStatus(): void {
+  if (lastBackupAt === undefined || !bookmarksLoaded) {
+    backupStatusEl.textContent = '';
+    backupStatusEl.classList.remove('is-stale');
+    return;
+  }
+  const reminder = describeBackupAge(lastBackupAt, bookmarks.length);
+  backupStatusEl.textContent = reminder.text;
+  backupStatusEl.classList.toggle('is-stale', reminder.stale);
 }
 
 function renderFilterOptions(): void {
@@ -242,6 +269,7 @@ function updateLoadStatus(): void {
   bookmarkRetryEl.hidden = !error;
   bookmarkRetryEl.disabled = bookmarksLoading;
   exportEl.disabled = !bookmarksLoaded;
+  backupExportEl.disabled = !bookmarksLoaded;
 }
 
 function recordReadError(label: string, error: unknown): void {
@@ -344,8 +372,17 @@ async function reloadSettings(): Promise<void> {
   }
 }
 
+async function reloadBackupStatus(): Promise<void> {
+  try {
+    lastBackupAt = await getLastBackupAt();
+  } catch {
+    lastBackupAt = undefined; // 只影響提醒文字，不擋其他資料
+  }
+  renderBackupStatus();
+}
+
 async function load(): Promise<void> {
-  await Promise.all([reloadData(), reloadSettings()]);
+  await Promise.all([reloadData(), reloadSettings(), reloadBackupStatus()]);
 }
 
 // ── Chrome 真實書籤同步 UI ──────────────────────────────
@@ -688,23 +725,107 @@ async function restore(projectKey: string): Promise<void> {
   await load();
 }
 
+function downloadFile(content: string, fileName: string, type: string): void {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 function exportBookmarks(): void {
   if (!bookmarksLoaded) {
     return;
   }
-  const blob = new Blob([toNetscapeBookmarks(bookmarks)], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = 'axure-bookmarks.html';
-  anchor.click();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadFile(toNetscapeBookmarks(bookmarks), 'axure-bookmarks.html', 'text/html');
+}
+
+// ── JSON 備份與還原 ──────────────────────────────────────
+function showBackupNote(text: string, isError = false): void {
+  backupNoteEl.textContent = text;
+  backupNoteEl.classList.toggle('is-error', isError);
+  backupNoteEl.hidden = false;
+}
+
+function errorText(error: unknown): string {
+  return error instanceof Error ? error.message : '未知錯誤';
+}
+
+// 匯出時重新讀一次儲存空間，不用畫面上的狀態，避免分組或忽略清單讀取失敗時匯出不完整的備份。
+async function exportBackup(): Promise<void> {
+  backupExportEl.disabled = true;
+  try {
+    const now = Date.now();
+    const backup = createBackup(await getBackupData(), now);
+    downloadFile(JSON.stringify(backup, null, 2), backupFileName(now), 'application/json');
+    showBackupNote(`已匯出 ${backup.bookmarks.length} 筆書籤。請把備份檔存在外掛以外的地方（例如雲端硬碟）。`);
+    try {
+      await markBackupExported(now);
+      lastBackupAt = now;
+    } catch {
+      // 備份檔已下載，只是沒記到時間；下次開啟仍會提醒備份。
+    }
+  } catch (error) {
+    showBackupNote(`匯出失敗：${errorText(error)}`, true);
+  } finally {
+    backupExportEl.disabled = !bookmarksLoaded;
+    renderBackupStatus();
+  }
+}
+
+function describeExportedAt(backup: BookmarkBackup): string {
+  const time = Date.parse(backup.exportedAt);
+  return Number.isNaN(time) ? '' : `（${new Date(time).toLocaleString()} 匯出）`;
+}
+
+async function importBackupFile(): Promise<void> {
+  const file = backupFileEl.files?.[0];
+  backupFileEl.value = ''; // 讓同一個檔案可以再選一次
+  if (!file) {
+    return;
+  }
+
+  let backup: BookmarkBackup;
+  try {
+    backup = parseBackup(await file.text());
+  } catch (error) {
+    showBackupNote(`無法匯入「${file.name}」：${errorText(error)}`, true);
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `備份檔含 ${backup.bookmarks.length} 筆書籤${describeExportedAt(backup)}。\n` +
+      '只會加入目前沒有的書籤，現有書籤不會被修改。要匯入嗎？'
+  );
+  if (!confirmed) {
+    return;
+  }
+
+  backupImportEl.disabled = true;
+  try {
+    const response = await send({ type: 'BOOKMARK_IMPORT', backup });
+    if (!response.ok) {
+      showBackupNote(`匯入失敗：${response.error}`, true);
+      return;
+    }
+    const { added, skipped } = response.imported ?? { added: 0, skipped: 0 };
+    const skippedText = skipped > 0 ? `，略過 ${skipped} 筆已存在的書籤` : '';
+    showBackupNote(`已加入 ${added} 筆書籤${skippedText}。`);
+    await load();
+  } finally {
+    backupImportEl.disabled = false;
+  }
 }
 
 searchEl.addEventListener('input', render);
 folderFilterEl.addEventListener('change', render);
 sortEl.addEventListener('change', render);
 exportEl.addEventListener('click', exportBookmarks);
+backupExportEl.addEventListener('click', () => void exportBackup());
+backupImportEl.addEventListener('click', () => backupFileEl.click());
+backupFileEl.addEventListener('change', () => void importBackupFile());
 bookmarkRetryEl.addEventListener('click', () => void load());
 addFolderEl.addEventListener('click', () => void addFolderUI());
 newFolderEl.addEventListener('keydown', (event) => {

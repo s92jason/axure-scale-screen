@@ -66,6 +66,23 @@
       </table>
       <p id="empty" class="empty" hidden>尚無書籤。在 Axure 原型頁用浮動卡片或 popup 的「收藏此頁」加入。</p>
 
+      <section class="backup">
+        <h2>備份與還原</h2>
+        <div class="setting-row">
+          <span>
+            JSON 完整備份<br />
+            <small>含書籤、分組與忽略清單；匯入只會補上目前沒有的書籤，不會修改現有書籤。</small><br />
+            <small id="backupStatus"></small>
+          </span>
+          <span class="sync-controls">
+            <button id="backupExport" class="btn" type="button" disabled>匯出備份（JSON）</button>
+            <button id="backupImport" class="btn" type="button">匯入備份…</button>
+          </span>
+        </div>
+        <input id="backupFile" type="file" accept="application/json,.json" hidden />
+        <p id="backupNote" class="backup-note" role="status" aria-live="polite" hidden></p>
+      </section>
+
       <section id="tabCleanup" aria-label="清理 Axure 頁籤"></section>
 
       <section class="folders">

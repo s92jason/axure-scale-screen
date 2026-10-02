@@ -69,7 +69,7 @@ h1 { font-size: 21px; font-weight: 650; letter-spacing: -0.02em; margin: 0; }
 h2 { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 12px; }
 
 /* ─── Glass card surfaces ─── */
-.list, .folders, .settings, .ignored {
+.list, .backup, .folders, .settings, .ignored {
   position: relative;
   background: var(--glass-bg);
   -webkit-backdrop-filter: var(--glass-blur);
@@ -77,8 +77,8 @@ h2 { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: up
   box-shadow: var(--glass-shadow);
   border-radius: 16px;
 }
-.folders, .settings, .ignored { padding: 16px; margin-top: 16px; }
-.list::before, .folders::before, .settings::before, .ignored::before {
+.backup, .folders, .settings, .ignored { padding: 16px; margin-top: 16px; }
+.list::before, .backup::before, .folders::before, .settings::before, .ignored::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -182,6 +182,12 @@ h2 { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: up
 .switch-label { white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
 .switch-label input { accent-color: var(--accent); width: 16px; height: 16px; }
 .sync-controls { display: flex; gap: 8px; align-items: center; }
+
+/* ─── 備份與還原 ─── */
+.backup .sync-controls { flex-shrink: 0; }
+#backupStatus.is-stale { color: var(--danger); }
+.backup-note { margin: 10px 2px 0; font-size: 12.5px; color: var(--text-2); overflow-wrap: anywhere; }
+.backup-note.is-error { color: var(--danger); }
 .sync-controls select { max-width: 220px; }
 
 /* ─── 資料夾選擇器 ─── */
