@@ -1,11 +1,13 @@
-import { cpSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { copyFileSync, cpSync, existsSync, readFileSync } from 'node:fs';
+import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(scriptDir, '..');
 const distDir = resolve(rootDir, 'dist');
+const safariHandlerSource = resolve(rootDir, 'src/safari-native/SafariWebExtensionHandler.swift');
+const safariHandlerTarget = resolve(rootDir, 'safari-app/AxureScaleScreen/Shared (Extension)/SafariWebExtensionHandler.swift');
 
 async function buildPages() {
   await build({
@@ -73,6 +75,20 @@ async function buildContent() {
   });
 }
 
+// Safari 自動備份的原生程式：Xcode 專案不進版，build 時把版控中的 handler 同步進既有專案，
+// 更新流程維持「npm run build → Xcode Run」。尚未轉換出專案時略過；內容相同就不寫，避免 Xcode 無謂重編。
+function syncSafariHandler() {
+  if (!existsSync(dirname(safariHandlerTarget))) {
+    return;
+  }
+  const source = readFileSync(safariHandlerSource);
+  if (existsSync(safariHandlerTarget) && readFileSync(safariHandlerTarget).equals(source)) {
+    return;
+  }
+  copyFileSync(safariHandlerSource, safariHandlerTarget);
+  console.log(`已同步 Safari 原生程式：${relative(rootDir, safariHandlerTarget)}`);
+}
+
 async function main() {
   await buildPages();
   await buildBackground();
@@ -80,6 +96,7 @@ async function main() {
   cpSync(resolve(rootDir, 'src/manifest.json'), resolve(distDir, 'manifest.json'));
   cpSync(resolve(rootDir, 'src/icons'), resolve(distDir, 'icons'), { recursive: true, force: true });
   cpSync(resolve(rootDir, 'src/_locales'), resolve(distDir, '_locales'), { recursive: true, force: true });
+  syncSafariHandler();
 }
 
 main().catch((error) => {

@@ -37,6 +37,14 @@
         <button id="export" class="btn primary" type="button" disabled>匯出 bookmarks.html</button>
       </header>
 
+      <div id="nativeRestore" class="restore-banner" role="alert" hidden>
+        <p id="nativeRestoreText"></p>
+        <span class="sync-controls">
+          <button id="nativeRestoreApply" class="btn primary" type="button">還原自動備份</button>
+          <button id="nativeRestoreDismiss" class="btn" type="button">不用還原</button>
+        </span>
+      </div>
+
       <div class="toolbar">
         <input id="search" type="search" placeholder="搜尋名稱或分組…" />
         <select id="folder" aria-label="分組篩選"><option value="">全部分組</option></select>
@@ -77,6 +85,13 @@
           <span class="sync-controls">
             <button id="backupExport" class="btn" type="button" disabled>匯出備份（JSON）</button>
             <button id="backupImport" class="btn" type="button">匯入備份…</button>
+          </span>
+        </div>
+        <div id="nativeBackupRow" class="setting-row" hidden>
+          <span>
+            Safari 自動備份<br />
+            <small>每次變更後自動存一份到外掛的 App 容器，Safari 清除外掛資料時也不會被刪；保留最近 30 天。</small><br />
+            <small id="nativeBackupStatus"></small>
           </span>
         </div>
         <input id="backupFile" type="file" accept="application/json,.json" hidden />

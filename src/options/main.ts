@@ -10,7 +10,14 @@ import {
   markBackupExported
 } from '../shared/bookmarkStore';
 import { toNetscapeBookmarks } from '../shared/netscape';
-import type { AxureBookmark, BookmarkBackup, RuntimeMessage, RuntimeResponse, Settings } from '../shared/types';
+import type {
+  AxureBookmark,
+  BookmarkBackup,
+  NativeBackupStatus,
+  RuntimeMessage,
+  RuntimeResponse,
+  Settings
+} from '../shared/types';
 import { toEntryUrl } from '../shared/url';
 import { mountTabCleanup } from '../tab-cleanup/panel';
 
@@ -42,6 +49,12 @@ const backupExportEl = must<HTMLButtonElement>('#backupExport');
 const backupImportEl = must<HTMLButtonElement>('#backupImport');
 const backupFileEl = must<HTMLInputElement>('#backupFile');
 const backupNoteEl = must<HTMLParagraphElement>('#backupNote');
+const nativeRestoreEl = must<HTMLDivElement>('#nativeRestore');
+const nativeRestoreTextEl = must<HTMLParagraphElement>('#nativeRestoreText');
+const nativeRestoreApplyEl = must<HTMLButtonElement>('#nativeRestoreApply');
+const nativeRestoreDismissEl = must<HTMLButtonElement>('#nativeRestoreDismiss');
+const nativeBackupRowEl = must<HTMLDivElement>('#nativeBackupRow');
+const nativeBackupStatusEl = must<HTMLElement>('#nativeBackupStatus');
 const newFolderEl = must<HTMLInputElement>('#newFolder');
 const addFolderEl = must<HTMLButtonElement>('#addFolder');
 const folderListEl = must<HTMLUListElement>('#folderList');
@@ -72,6 +85,8 @@ let bookmarksLoading = false;
 let dataReloadId = 0;
 let settingsReloadId = 0;
 let lastBackupAt: number | null | undefined; // undefined = 尚未讀到
+let nativeBackup: NativeBackupStatus | null = null; // null = 背景沒回應或尚未讀到
+let restoreMessage: { text: string; isError: boolean } | null = null;
 const readErrors = new Map<string, string>();
 
 // 資料夾選擇器狀態
@@ -381,8 +396,93 @@ async function reloadBackupStatus(): Promise<void> {
   renderBackupStatus();
 }
 
+function fmtBackupTime(ms: number | null): string {
+  return ms ? new Date(ms).toLocaleString() : '時間不明';
+}
+
+// 上方橫幅：有待還原的自動備份時詢問；還原後短暫顯示結果。
+// 下方「Safari 自動備份」列：Chrome(不支援且沒有錯誤)整列隱藏。
+function renderNativeBackup(): void {
+  const pending = nativeBackup?.pending ?? null;
+  const banner = pending
+    ? {
+        text:
+          `外掛資料可能被 Safari 清除了。找到 ${pending.count} 筆書籤的自動備份（${fmtBackupTime(pending.savedAt)}），` +
+          '還原只會補上目前沒有的書籤。在你決定之前，自動備份會暫停，不會覆蓋這份備份。',
+        isError: true
+      }
+    : restoreMessage;
+  nativeRestoreEl.hidden = !banner;
+  nativeRestoreEl.classList.toggle('is-done', Boolean(banner && !pending && !banner.isError));
+  nativeRestoreTextEl.textContent = banner?.text ?? '';
+  nativeRestoreApplyEl.hidden = !pending;
+  nativeRestoreDismissEl.hidden = !pending;
+
+  const status = nativeBackup;
+  nativeBackupRowEl.hidden = !status || (!status.available && !status.error);
+  nativeBackupStatusEl.classList.toggle('is-error', Boolean(status?.error || pending));
+  if (!status) {
+    nativeBackupStatusEl.textContent = '';
+  } else if (status.error) {
+    nativeBackupStatusEl.textContent = `無法使用：${status.error}`;
+  } else if (pending) {
+    nativeBackupStatusEl.textContent = '已暫停：等待你決定是否還原（見頁面上方）。';
+  } else {
+    nativeBackupStatusEl.textContent = status.lastBackupAt
+      ? `已開啟。上次自動備份：${fmtBackupTime(status.lastBackupAt)}`
+      : '已開啟，下次變更書籤時會建立第一份自動備份。';
+  }
+}
+
+async function reloadNativeBackup(): Promise<void> {
+  const response = await send({ type: 'NATIVE_BACKUP_STATUS' });
+  nativeBackup = response.ok ? (response.nativeBackup ?? null) : null;
+  renderNativeBackup();
+}
+
 async function load(): Promise<void> {
-  await Promise.all([reloadData(), reloadSettings(), reloadBackupStatus()]);
+  await Promise.all([reloadData(), reloadSettings(), reloadBackupStatus(), reloadNativeBackup()]);
+}
+
+function setRestoreButtonsDisabled(disabled: boolean): void {
+  nativeRestoreApplyEl.disabled = disabled;
+  nativeRestoreDismissEl.disabled = disabled;
+}
+
+async function applyNativeRestore(): Promise<void> {
+  setRestoreButtonsDisabled(true);
+  try {
+    const response = await send({ type: 'NATIVE_BACKUP_RESTORE' });
+    if (!response.ok) {
+      restoreMessage = { text: `還原失敗：${response.error}`, isError: true };
+      renderNativeBackup();
+      return;
+    }
+    const { added, skipped } = response.imported ?? { added: 0, skipped: 0 };
+    const skippedText = skipped > 0 ? `，略過 ${skipped} 筆已存在的書籤` : '';
+    restoreMessage = { text: `已從自動備份還原 ${added} 筆書籤${skippedText}。自動備份已恢復。`, isError: false };
+    await load();
+  } finally {
+    setRestoreButtonsDisabled(false);
+  }
+}
+
+async function dismissNativeRestore(): Promise<void> {
+  const confirmed = window.confirm(
+    '不還原的話，之後的自動備份會以目前的書籤為準。\n' +
+      'App 容器裡仍保留最近 30 天的每日備份檔，必要時可以手動找回。確定不還原嗎？'
+  );
+  if (!confirmed) {
+    return;
+  }
+  setRestoreButtonsDisabled(true);
+  try {
+    const response = await send({ type: 'NATIVE_BACKUP_DISMISS' });
+    restoreMessage = response.ok ? null : { text: `操作失敗：${response.error}`, isError: true };
+    await load();
+  } finally {
+    setRestoreButtonsDisabled(false);
+  }
 }
 
 // ── Chrome 真實書籤同步 UI ──────────────────────────────
@@ -826,6 +926,8 @@ exportEl.addEventListener('click', exportBookmarks);
 backupExportEl.addEventListener('click', () => void exportBackup());
 backupImportEl.addEventListener('click', () => backupFileEl.click());
 backupFileEl.addEventListener('change', () => void importBackupFile());
+nativeRestoreApplyEl.addEventListener('click', () => void applyNativeRestore());
+nativeRestoreDismissEl.addEventListener('click', () => void dismissNativeRestore());
 bookmarkRetryEl.addEventListener('click', () => void load());
 addFolderEl.addEventListener('click', () => void addFolderUI());
 newFolderEl.addEventListener('keydown', (event) => {

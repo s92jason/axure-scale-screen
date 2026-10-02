@@ -188,6 +188,18 @@ h2 { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: up
 #backupStatus.is-stale { color: var(--danger); }
 .backup-note { margin: 10px 2px 0; font-size: 12.5px; color: var(--text-2); overflow-wrap: anywhere; }
 .backup-note.is-error { color: var(--danger); }
+#nativeBackupRow[hidden] { display: none; }
+#nativeBackupStatus.is-error { color: var(--danger); }
+.restore-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 13px 15px; margin-bottom: 14px; border-radius: 12px;
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+}
+.restore-banner[hidden] { display: none; }
+.restore-banner.is-done { background: var(--accent-soft); border-color: var(--accent-ring); }
+.restore-banner p { flex: 1; margin: 0; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.restore-banner .sync-controls { flex-shrink: 0; }
 .sync-controls select { max-width: 220px; }
 
 /* ─── 資料夾選擇器 ─── */

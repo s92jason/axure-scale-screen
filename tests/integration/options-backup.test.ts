@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 import { BACKUP_FORMAT, BACKUP_VERSION, createBackup } from '../../src/shared/bookmarkBackup';
 import { STORAGE_PREFIX } from '../../src/shared/constants';
-import type { AxureBookmark, RuntimeMessage, RuntimeResponse } from '../../src/shared/types';
+import type { AxureBookmark, NativeBackupStatus, RuntimeMessage, RuntimeResponse } from '../../src/shared/types';
 
 const optionsHtml = readFileSync(resolve('options.html'), 'utf8');
 const itemsKey = `${STORAGE_PREFIX}bm::items`;
@@ -23,6 +23,7 @@ const savedBookmark: AxureBookmark = {
 let storedData: Record<string, unknown>;
 let sendMessage: ReturnType<typeof vi.fn<(message: RuntimeMessage, callback: (response?: RuntimeResponse) => void) => void>>;
 let downloads: Array<{ fileName: string; blob: Blob }>;
+let nativeStatus: NativeBackupStatus | undefined;
 let confirmSpy: MockInstance<typeof window.confirm>;
 
 beforeEach(() => {
@@ -34,12 +35,26 @@ beforeEach(() => {
     [ignoredKey]: ['axshare:ignored']
   };
   const event = () => ({ addListener: vi.fn(), removeListener: vi.fn() });
+  nativeStatus = undefined;
   sendMessage = vi.fn((message, callback) => {
-    if (message.type === 'BOOKMARK_IMPORT') {
-      callback({ ok: true, imported: { added: 1, skipped: 1 } });
-      return;
+    switch (message.type) {
+      case 'BOOKMARK_IMPORT':
+        callback({ ok: true, imported: { added: 1, skipped: 1 } });
+        return;
+      case 'NATIVE_BACKUP_STATUS':
+        callback({ ok: true, nativeBackup: nativeStatus });
+        return;
+      case 'NATIVE_BACKUP_RESTORE':
+        nativeStatus = { available: true, lastBackupAt: 9000, pending: null };
+        callback({ ok: true, imported: { added: 17, skipped: 1 } });
+        return;
+      case 'NATIVE_BACKUP_DISMISS':
+        nativeStatus = { available: true, lastBackupAt: 9000, pending: null };
+        callback({ ok: true });
+        return;
+      default:
+        callback({ ok: true, completedTabs: [] });
     }
-    callback({ ok: true, completedTabs: [] });
   });
   vi.stubGlobal('chrome', {
     runtime: { sendMessage },
@@ -187,5 +202,73 @@ describe('options JSON backup', () => {
 
     expect(el('#backupNote').classList.contains('is-error')).toBe(true);
     expect(el<HTMLButtonElement>('#backupImport').disabled).toBe(false);
+  });
+});
+
+describe('options Safari auto backup', () => {
+  function sentTypes(): string[] {
+    return sendMessage.mock.calls.map(([message]) => message.type);
+  }
+
+  it('hides the auto backup row and banner where it is not supported (Chrome)', async () => {
+    nativeStatus = { available: false, lastBackupAt: null, pending: null };
+    await loadOptions();
+    await vi.waitFor(() => expect(sentTypes()).toContain('NATIVE_BACKUP_STATUS'));
+
+    expect(el<HTMLDivElement>('#nativeBackupRow').hidden).toBe(true);
+    expect(el<HTMLDivElement>('#nativeRestore').hidden).toBe(true);
+  });
+
+  it('shows when the last auto backup ran', async () => {
+    nativeStatus = { available: true, lastBackupAt: Date.UTC(2026, 9, 2, 2, 30), pending: null };
+    await loadOptions();
+
+    await vi.waitFor(() => expect(el<HTMLDivElement>('#nativeBackupRow').hidden).toBe(false));
+    expect(el('#nativeBackupStatus').textContent).toMatch(/^已開啟。上次自動備份：/);
+    expect(el('#nativeBackupStatus').classList.contains('is-error')).toBe(false);
+    expect(el<HTMLDivElement>('#nativeRestore').hidden).toBe(true);
+  });
+
+  it('tells the user to rebuild in Xcode when the native handler is outdated', async () => {
+    nativeStatus = { available: false, error: '需要更新 Xcode 專案的原生程式：執行 npm run build 後在 Xcode 按 Run。', lastBackupAt: null, pending: null };
+    await loadOptions();
+
+    await vi.waitFor(() => expect(el<HTMLDivElement>('#nativeBackupRow').hidden).toBe(false));
+    expect(el('#nativeBackupStatus').textContent).toBe('無法使用：需要更新 Xcode 專案的原生程式：執行 npm run build 後在 Xcode 按 Run。');
+    expect(el('#nativeBackupStatus').classList.contains('is-error')).toBe(true);
+  });
+
+  it('offers to restore after the storage was wiped and reports the result in the banner', async () => {
+    nativeStatus = { available: true, lastBackupAt: 4000, pending: { count: 18, savedAt: 4000 } };
+    await loadOptions();
+
+    await vi.waitFor(() => expect(el<HTMLDivElement>('#nativeRestore').hidden).toBe(false));
+    expect(el('#nativeRestoreText').textContent).toContain('找到 18 筆書籤的自動備份');
+    expect(el('#nativeBackupStatus').textContent).toBe('已暫停：等待你決定是否還原（見頁面上方）。');
+
+    el<HTMLButtonElement>('#nativeRestoreApply').click();
+    await vi.waitFor(() =>
+      expect(el('#nativeRestoreText').textContent).toBe('已從自動備份還原 17 筆書籤，略過 1 筆已存在的書籤。自動備份已恢復。')
+    );
+
+    expect(sentTypes()).toContain('NATIVE_BACKUP_RESTORE');
+    expect(el('#nativeRestore').classList.contains('is-done')).toBe(true);
+    expect(el<HTMLButtonElement>('#nativeRestoreApply').hidden).toBe(true);
+    expect(el('#nativeBackupStatus').textContent).toMatch(/^已開啟。上次自動備份：/);
+  });
+
+  it('asks before dismissing and resumes backups with the current data', async () => {
+    nativeStatus = { available: true, lastBackupAt: 4000, pending: { count: 18, savedAt: 4000 } };
+    await loadOptions();
+    await vi.waitFor(() => expect(el<HTMLDivElement>('#nativeRestore').hidden).toBe(false));
+
+    confirmSpy.mockReturnValueOnce(false);
+    el<HTMLButtonElement>('#nativeRestoreDismiss').click();
+    expect(sentTypes()).not.toContain('NATIVE_BACKUP_DISMISS');
+
+    el<HTMLButtonElement>('#nativeRestoreDismiss').click();
+    await vi.waitFor(() => expect(el<HTMLDivElement>('#nativeRestore').hidden).toBe(true));
+    expect(confirmSpy).toHaveBeenLastCalledWith(expect.stringContaining('30 天'));
+    expect(sentTypes()).toContain('NATIVE_BACKUP_DISMISS');
   });
 });

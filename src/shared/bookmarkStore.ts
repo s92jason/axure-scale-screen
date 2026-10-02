@@ -23,6 +23,7 @@ const IGNORED_KEY = `${BM_PREFIX}ignored`;
 const SETTINGS_KEY = `${BM_PREFIX}settings`;
 const FOLDERS_KEY = `${BM_PREFIX}folders`;
 const BACKUP_META_KEY = `${BM_PREFIX}backup`;
+const NATIVE_LINK_KEY = `${BM_PREFIX}nativeLink`;
 
 const DEFAULT_SETTINGS: Settings = {
   promptMode: 'card',
@@ -272,6 +273,17 @@ export async function getLastBackupAt(): Promise<number | null> {
 
 export async function markBackupExported(at = Date.now()): Promise<void> {
   await setStorageValue(BACKUP_META_KEY, { lastExportedAt: at });
+}
+
+// 自動備份的連結標記：和書籤存在同一個 storage，Safari 清掉 storage 時會一起消失，
+// 背景藉此分辨「全新安裝」與「資料被清除」，後者不能拿空資料覆蓋原生備份。
+export async function getNativeBackupLinkedAt(): Promise<number | null> {
+  const link = await getStorageValue<{ linkedAt?: unknown }>(NATIVE_LINK_KEY);
+  return typeof link?.linkedAt === 'number' ? link.linkedAt : null;
+}
+
+export async function linkNativeBackup(at = Date.now()): Promise<void> {
+  await setStorageValue(NATIVE_LINK_KEY, { linkedAt: at });
 }
 
 export async function getSettings(): Promise<Settings> {
