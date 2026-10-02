@@ -173,6 +173,7 @@ h2 { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: up
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 13px; background: var(--field-bg); border: 1px solid var(--hairline); border-radius: 11px; margin-bottom: 7px;
 }
+.setting-row[hidden] { display: none; }
 .setting-row:last-child { margin-bottom: 0; }
 .setting-row select {
   font: inherit; padding: 7px 11px; border: 1px solid var(--hairline); border-radius: 8px;
@@ -188,7 +189,6 @@ h2 { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: up
 #backupStatus.is-stale { color: var(--danger); }
 .backup-note { margin: 10px 2px 0; font-size: 12.5px; color: var(--text-2); overflow-wrap: anywhere; }
 .backup-note.is-error { color: var(--danger); }
-#nativeBackupRow[hidden] { display: none; }
 #nativeBackupStatus.is-error { color: var(--danger); }
 .restore-banner {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
