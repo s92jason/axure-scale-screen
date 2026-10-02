@@ -12,7 +12,7 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "permissions": ["storage", "activeTab", "scripting", "sidePanel"],
+  "permissions": ["storage", "activeTab", "scripting", "sidePanel", "nativeMessaging"],
   "optional_permissions": ["bookmarks"],
   "host_permissions": ["http://*/*", "https://*/*", "file://*/*"],
   "action": {

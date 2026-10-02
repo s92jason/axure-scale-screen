@@ -31,6 +31,9 @@ describe('isRuntimeMessage', () => {
     ).toBe(true);
     expect(isRuntimeMessage({ type: 'SYNC_NOW' })).toBe(true);
     expect(isRuntimeMessage({ type: 'BOOKMARK_IMPORT', backup: { format: 'axure-scale-screen-backup' } })).toBe(true);
+    expect(isRuntimeMessage({ type: 'NATIVE_BACKUP_STATUS' })).toBe(true);
+    expect(isRuntimeMessage({ type: 'NATIVE_BACKUP_RESTORE' })).toBe(true);
+    expect(isRuntimeMessage({ type: 'NATIVE_BACKUP_DISMISS' })).toBe(true);
   });
 
   it('rejects import messages without a backup object', () => {

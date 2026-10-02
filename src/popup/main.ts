@@ -518,6 +518,7 @@ async function loadBookmarks(): Promise<void> {
     bookmarkReadPending = false;
     renderBookmarks();
     bmLoadStatus.hidden = true;
+    void showPendingRestoreHint(readId);
   } catch (error) {
     if (readId !== bookmarkReadId) {
       return;
@@ -532,6 +533,19 @@ async function loadBookmarks(): Promise<void> {
     // 保留已載入的清單；讀取失敗不代表沒有書籤。
   }
   updateAddAvailability();
+}
+
+// 外掛資料被 Safari 清除、自動備份暫停等待還原時，提示到管理頁處理；背景沒回應就不顯示。
+async function showPendingRestoreHint(readId: number): Promise<void> {
+  const response = await sendToBackground({ type: 'NATIVE_BACKUP_STATUS' });
+  const pending = response.ok ? response.nativeBackup?.pending : null;
+  if (!pending || readId !== bookmarkReadId || bookmarkReadFailed) {
+    return;
+  }
+  const text = `外掛資料可能被清除了：找到 ${pending.count} 筆書籤的自動備份，請按「管理書籤 →」還原。`;
+  bmLoadStatus.textContent = text;
+  bmLoadStatus.title = text;
+  bmLoadStatus.hidden = false;
 }
 
 async function openBookmark(bm: AxureBookmark): Promise<void> {

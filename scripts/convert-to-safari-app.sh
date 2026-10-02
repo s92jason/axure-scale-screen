@@ -43,5 +43,8 @@ xcrun safari-web-extension-converter dist \
   --bundle-identifier "$BUNDLE_ID" \
   --swift
 
+# 換上版控中的原生程式（自動備份）；之後 npm run build 會持續同步預設路徑的專案。
+cp src/safari-native/SafariWebExtensionHandler.swift "$PROJECT_DIR/Shared (Extension)/SafariWebExtensionHandler.swift"
+
 echo "已建立 Safari App 專案：$OUTPUT_DIR"
 echo "之後更新外掛只需要 npm run build，再到 Xcode 按 Run；不要再重新執行這個腳本。"

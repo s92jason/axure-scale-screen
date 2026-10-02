@@ -68,6 +68,8 @@ git status       # 應顯示 working tree clean
 
 ## 建置 / 產物備忘
 - `npm run build`（= `node scripts/build.mjs`）：跑三次 `vite build`——HTML 多入口（popup / sidepanel / options）+ background、content 各自獨立的 library build → 產出 `dist/`，並複製 `src/manifest.json`、`src/icons`、`src/_locales`。
+  - 若 `safari-app/AxureScaleScreen/Shared (Extension)/` 存在，還會把 `src/safari-native/SafariWebExtensionHandler.swift` 同步進去（內容相同就不寫）。**這會改到使用者的 Xcode 專案**：驗證建置一律在隔離副本跑，不要在使用者的工作目錄直接執行。
+  - Swift 端測試：`npm run test:native`（需要 Xcode，只編譯成暫存執行檔，不會 build 或註冊外掛）。**不要**用 `xcodebuild` 建置使用者的 Safari 專案驗證：重新註冊外掛可能觸發 Safari 清除外掛資料。
 - **i18n 的 source of truth 在 `src/`**：`src/_locales/{zh_TW,en}/messages.json` 與 `src/manifest.json`（`__MSG_*__` + `default_locale`）。改 i18n 一律改 `src/`，不要只改 `dist/`。
 - `dist/` 不進版（gitignore），必須能由 `npm run build` 完整重現；改 `src/` 後記得重生。
 - `safari-app/`（Safari 轉檔產物）不進版；`packages/` 是未追蹤的舊化石樹，與建置無關。

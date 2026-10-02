@@ -22,6 +22,7 @@ Axure Scale Screen 是適用於 Chrome 與 Safari 的 Axure 原型工具，提�
 - 清理 Axure 頁籤：popup、側欄與管理頁會列出所有視窗中屬於「已完成」專案的頁籤，建議關閉並提供一鍵全關。同一專案的不同頁面與重複頁籤都會列入；關閉前重新比對，只關閉清單中仍屬於「已完成」的頁籤。
 - 匯出 `bookmarks.html`（Netscape 格式）：任何瀏覽器「匯入書籤」皆可，是 Safari 寫入真實書籤的正規途徑。
 - JSON 完整備份與還原：管理頁「備份與還原」可匯出含書籤（含造訪次數）、分組與忽略清單的 JSON；匯入只補上目前沒有的書籤，不修改現有書籤，重複匯入同一份也沒有副作用。超過 7 天未備份會以紅字提醒。外掛資料只存在瀏覽器裡，Safari 把外掛當成重新安裝時會整個清除，請把備份檔存在外掛以外的地方。
+- Safari 自動備份：每次書籤有變動，就透過 native messaging 把完整備份寫進外掛 App Extension 自己的容器（`~/Library/Containers/com.example.axurescalescreen.Extension/Data/Library/Application Support/AxureScaleScreen/Backups/<Safari 設定檔>/`），保留 `latest.json` 與最近 30 天的每日備份。Safari 清除外掛資料時不會動到這個容器；偵測到資料被清除時會**暫停自動備份**（不會用空資料蓋掉備份），並在管理頁與 popup 提示「還原自動備份」。Chrome 不支援，相關介面自動隱藏。
 - 提示模式：浮動卡片，或工具列圖示顯示 `＋` 的 badge 模式（設定頁切換）。
 - Chrome 真實書籤同步（單向 push）：把書籤推送到所選 Chrome 書籤資料夾並維護「Axure 書籤」資料夾；Safari 不支援，介面會自動隱藏該區。
 
@@ -55,7 +56,7 @@ npm run build
 
 ### 更新 Safari 外掛
 Xcode 專案直接引用 `dist/`，之後每次更新只需要：
-1. `npm run build`
+1. `npm run build`（也會把 `src/safari-native/SafariWebExtensionHandler.swift` 同步進 `safari-app/AxureScaleScreen/`，自動備份需要它）
 2. 在 Xcode 按 Run
 
 > ⚠️ **不要重新執行轉換腳本或刪掉 `safari-app/` 重建。** 重新產生專案會讓 Safari 把外掛當成重新安裝，並清除外掛的儲存資料（所有書籤、分組與縮放記錄）。轉換腳本偵測到既有專案，或 Safari 已安裝這個外掛時會直接停止；真的必須重建時，先到管理頁「匯出備份（JSON）」，再以 `ALLOW_REGENERATE=1` 執行，完成後用「匯入備份」還原。
@@ -90,6 +91,7 @@ Xcode 專案直接引用 `dist/`，之後每次更新只需要：
 ```bash
 npm test
 npm run lint
+npm run test:native   # Safari 原生備份 handler（需要 Xcode）
 ```
 
 Safari 手動回歸（更新外掛並重新整理 Axure 頁面後）：

@@ -8,6 +8,7 @@
     "build": "node scripts/build.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:native": "bash scripts/test-safari-native.sh",
     "lint": "tsc --noEmit"
   },
   "devDependencies": {
