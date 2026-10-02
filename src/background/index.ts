@@ -1,3 +1,4 @@
+import { normalizeBackup } from '../shared/bookmarkBackup';
 import {
   addBookmark,
   addFolder,
@@ -7,6 +8,7 @@ import {
   getIgnored,
   getSettings,
   ignoreBookmark,
+  importBackup,
   isIgnored,
   recordVisit,
   removeBookmark,
@@ -419,6 +421,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case 'BOOKMARK_REMOVE_FOLDER': {
           await removeFolder(message.name);
           sendResponse({ ok: true, folders: await getFolders() });
+          maybeSync();
+          return;
+        }
+        case 'BOOKMARK_IMPORT': {
+          const imported = await importBackup(normalizeBackup(message.backup));
+          sendResponse({ ok: true, imported });
           maybeSync();
           return;
         }

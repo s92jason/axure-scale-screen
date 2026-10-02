@@ -1,17 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { createBackup } from '../../src/shared/bookmarkBackup';
 import { COMPLETED_FOLDER, STORAGE_PREFIX } from '../../src/shared/constants';
 import {
   DEFAULT_FOLDERS,
   addBookmark,
   addFolder,
   getAllBookmarks,
+  getBackupData,
   getBookmark,
   getFolders,
+  getLastBackupAt,
   getStoredFolders,
   getSettings,
   ignoreBookmark,
   ignoreProject,
+  importBackup,
   isIgnored,
+  markBackupExported,
   recordVisit,
   removeBookmark,
   removeFolder,
@@ -212,5 +217,55 @@ describe('bookmarkStore', () => {
     await ignoreBookmark('k');
     expect(await getBookmark('k')).toBeNull();
     expect(await isIgnored('k')).toBe(true);
+  });
+});
+
+describe('bookmarkStore JSON backup', () => {
+  beforeEach(() => {
+    installChromeMock();
+  });
+
+  it('collects backup data without seeding default folders', async () => {
+    const data: Record<string, unknown> = {};
+    installChromeMock(data);
+    await addBookmark({ projectKey: 'axshare:a', name: 'A', url: 'https://a.axshare.com/' });
+    await ignoreProject('axshare:skip');
+
+    const backup = await getBackupData();
+
+    expect(backup.bookmarks.map((bm) => bm.projectKey)).toEqual(['axshare:a']);
+    expect(backup.folders).toEqual(DEFAULT_FOLDERS);
+    expect(backup.ignored).toEqual(['axshare:skip']);
+    expect(data[`${STORAGE_PREFIX}bm::folders`]).toBeUndefined();
+  });
+
+  it('restores a wiped storage from a backup and keeps bookmarks added afterwards', async () => {
+    const original: Record<string, unknown> = {};
+    installChromeMock(original);
+    await addFolder('專案A');
+    await addBookmark({ projectKey: 'axshare:old', name: '舊書籤', url: 'https://old.axshare.com/', folder: '專案A' });
+    await recordVisit('axshare:old');
+    await ignoreProject('axshare:skip');
+    const backup = createBackup(await getBackupData());
+
+    // Safari 清掉儲存空間後，使用者又新增了一筆。
+    installChromeMock({});
+    await addBookmark({ projectKey: 'axshare:new', name: '新書籤', url: 'https://new.axshare.com/' });
+
+    expect(await importBackup(backup)).toEqual({ added: 1, skipped: 0 });
+    const restored = await getBookmark('axshare:old');
+    expect(restored).toMatchObject({ name: '舊書籤', folder: '專案A', visitCount: 1 });
+    expect(await getBookmark('axshare:new')).not.toBeNull();
+    expect(await getFolders()).toContain('專案A');
+    expect(await isIgnored('axshare:skip')).toBe(true);
+
+    expect(await importBackup(backup)).toEqual({ added: 0, skipped: 1 });
+    expect(await getAllBookmarks()).toHaveLength(2);
+  });
+
+  it('records when a backup was last exported', async () => {
+    expect(await getLastBackupAt()).toBeNull();
+    await markBackupExported(1234);
+    expect(await getLastBackupAt()).toBe(1234);
   });
 });

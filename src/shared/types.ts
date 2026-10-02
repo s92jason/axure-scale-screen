@@ -22,6 +22,16 @@ export interface AxureBookmark {
   visitCount: number;
 }
 
+// 完整 JSON 備份(書籤 + 分組 + 忽略清單)，格式與版本定義在 bookmarkBackup.ts。
+export interface BookmarkBackup {
+  format: 'axure-scale-screen-backup';
+  version: 1;
+  exportedAt: string; // ISO 8601
+  bookmarks: AxureBookmark[];
+  folders: string[];
+  ignored: string[];
+}
+
 export interface CompletedAxureTab {
   tabId: number;
   projectKey: string;
@@ -55,6 +65,7 @@ export type RuntimeMessage =
   | { type: 'BOOKMARK_ADD_FOLDER'; name: string }
   | { type: 'BOOKMARK_RENAME_FOLDER'; name: string; newName: string }
   | { type: 'BOOKMARK_REMOVE_FOLDER'; name: string }
+  | { type: 'BOOKMARK_IMPORT'; backup: BookmarkBackup }
   | { type: 'AXURE_GET_COMPLETED_TABS' }
   | { type: 'AXURE_CLOSE_COMPLETED_TABS'; tabIds: number[] }
   | { type: 'SETTINGS_GET' }
@@ -73,6 +84,7 @@ export type RuntimeResponse =
       syncedCount?: number;
       completedTabs?: CompletedAxureTab[];
       closedCount?: number;
+      imported?: { added: number; skipped: number };
     }
   | { ok: false; error: string; completedTabs?: CompletedAxureTab[]; closedCount?: number };
 
@@ -137,6 +149,11 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
 
   if (candidate.type === 'SETTINGS_SET') {
     return typeof candidate.settings === 'object' && candidate.settings !== null;
+  }
+
+  // 內容由背景以 normalizeBackup() 逐欄驗證，這裡只擋掉明顯不是物件的訊息。
+  if (candidate.type === 'BOOKMARK_IMPORT') {
+    return typeof candidate.backup === 'object' && candidate.backup !== null;
   }
 
   if (candidate.type === 'BOOKMARK_ADD') {
