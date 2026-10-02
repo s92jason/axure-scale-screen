@@ -1,6 +1,6 @@
-# Axure Scale Screen（Safari Web Extension）
+# Axure Scale Screen（Chrome 與 Safari 外掛）
 
-這是一個針對 Safari 的 Axure 工具：既是縮放外掛（滑桿、快捷鍵、一鍵重置），也是 Axure 連結管理中心（自動偵測、收藏、分組、匯出／同步）。程式碼採用標準 Manifest V3 與 `chrome.*` API，因此也可以直接在 Chrome 上使用（見下方〈在 Chrome 執行〉）。
+Axure Scale Screen 是適用於 Chrome 與 Safari 的 Axure 原型工具，提供滑桿、快捷鍵與觸控板縮放，以及書籤收藏、搜尋、分組和匯出。把專案移到固定的「已完成」分組後，可查看建議關閉的頁籤並一鍵清理。Chrome 提供常駐側欄及選配的 Chrome 書籤同步；Safari 使用固定高度的浮動視窗。
 
 ## 功能
 
@@ -37,7 +37,7 @@ npm install
 npm run build
 ```
 
-建置輸出位於 `dist/`。
+建置輸出位於 `dist/`，並同步到 `AxureScaleScreen-extention/` 供 Chrome 載入。
 
 ## 在 Safari 執行（macOS 14+ / Safari 17+）
 1. 先建置 extension：
@@ -67,9 +67,11 @@ Xcode 專案直接引用 `dist/`，之後每次更新只需要：
    npm run build
    ```
 2. 打開 `chrome://extensions`，開啟右上角「開發人員模式」。
-3. 點「載入未封裝項目」，選擇 `dist/` 資料夾。
+3. 點「載入未封裝項目」，選擇 `AxureScaleScreen-extention/` 資料夾。
 4. 若要在本機 `file://` Axure 匯出檔使用，請到該擴充功能的「詳細資料」頁面，開啟「允許存取檔案網址」。
 5. 打開 Axure 頁面後，點選外掛圖示開始調整縮放。
+
+每次更新程式後執行 `npm run build`，再到 `chrome://extensions` 按外掛的「重新載入」。建置會完整同步這個固定資料夾；Safari 轉換流程使用 `dist/`。
 
 注意事項：
 - 縮放快捷鍵 `Cmd/Ctrl + Option + =/-/0` 由 content script 處理，安裝後即可使用，且不與瀏覽器內建縮放（`Cmd +/-`）衝突。

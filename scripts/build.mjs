@@ -1,4 +1,4 @@
-import { copyFileSync, cpSync, existsSync, readFileSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, readFileSync, rmSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
@@ -6,6 +6,7 @@ import { build } from 'vite';
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(scriptDir, '..');
 const distDir = resolve(rootDir, 'dist');
+const chromeDistDir = resolve(rootDir, 'AxureScaleScreen-extention');
 const safariHandlerSource = resolve(rootDir, 'src/safari-native/SafariWebExtensionHandler.swift');
 const safariHandlerTarget = resolve(rootDir, 'safari-app/AxureScaleScreen/Shared (Extension)/SafariWebExtensionHandler.swift');
 
@@ -96,6 +97,10 @@ async function main() {
   cpSync(resolve(rootDir, 'src/manifest.json'), resolve(distDir, 'manifest.json'));
   cpSync(resolve(rootDir, 'src/icons'), resolve(distDir, 'icons'), { recursive: true, force: true });
   cpSync(resolve(rootDir, 'src/_locales'), resolve(distDir, '_locales'), { recursive: true, force: true });
+  // Chrome 固定載入此資料夾；完整更新可移除過期的 hash 資產與語系檔案。
+  rmSync(chromeDistDir, { recursive: true, force: true });
+  cpSync(distDir, chromeDistDir, { recursive: true, force: true });
+  console.log(`Chrome 建置輸出：${chromeDistDir}`);
   syncSafariHandler();
 }
 
