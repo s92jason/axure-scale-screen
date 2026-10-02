@@ -37,6 +37,14 @@
         <button id="export" class="btn primary" type="button" disabled>匯出 bookmarks.html</button>
       </header>
 
+      <div id="nativeRestore" class="restore-banner" role="alert" hidden>
+        <p id="nativeRestoreText"></p>
+        <span class="sync-controls">
+          <button id="nativeRestoreApply" class="btn primary" type="button">還原自動備份</button>
+          <button id="nativeRestoreDismiss" class="btn" type="button">不用還原</button>
+        </span>
+      </div>
+
       <div class="toolbar">
         <input id="search" type="search" placeholder="搜尋名稱或分組…" />
         <select id="folder" aria-label="分組篩選"><option value="">全部分組</option></select>
@@ -65,6 +73,30 @@
         <tbody id="rows"></tbody>
       </table>
       <p id="empty" class="empty" hidden>尚無書籤。在 Axure 原型頁用浮動卡片或 popup 的「收藏此頁」加入。</p>
+
+      <section class="backup">
+        <h2>備份與還原</h2>
+        <div class="setting-row">
+          <span>
+            JSON 完整備份<br />
+            <small>含書籤、分組與忽略清單；匯入只會補上目前沒有的書籤，不會修改現有書籤。</small><br />
+            <small id="backupStatus"></small>
+          </span>
+          <span class="sync-controls">
+            <button id="backupExport" class="btn" type="button" disabled>匯出備份（JSON）</button>
+            <button id="backupImport" class="btn" type="button">匯入備份…</button>
+          </span>
+        </div>
+        <div id="nativeBackupRow" class="setting-row" hidden>
+          <span>
+            Safari 自動備份<br />
+            <small>每次變更後自動存一份到外掛的 App 容器，Safari 清除外掛資料時也不會被刪；保留最近 30 天。</small><br />
+            <small id="nativeBackupStatus"></small>
+          </span>
+        </div>
+        <input id="backupFile" type="file" accept="application/json,.json" hidden />
+        <p id="backupNote" class="backup-note" role="status" aria-live="polite" hidden></p>
+      </section>
 
       <section id="tabCleanup" aria-label="清理 Axure 頁籤"></section>
 

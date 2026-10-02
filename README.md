@@ -1,6 +1,6 @@
-# Axure Scale Screen（Safari Web Extension）
+# Axure Scale Screen（Chrome 與 Safari 外掛）
 
-這是一個針對 Safari 的 Axure 工具：既是縮放外掛（滑桿、快捷鍵、一鍵重置），也是 Axure 連結管理中心（自動偵測、收藏、分組、匯出／同步）。程式碼採用標準 Manifest V3 與 `chrome.*` API，因此也可以直接在 Chrome 上使用（見下方〈在 Chrome 執行〉）。
+Axure Scale Screen 是適用於 Chrome 與 Safari 的 Axure 原型工具，提供滑桿、快捷鍵與觸控板縮放，以及書籤收藏、搜尋、分組和匯出。把專案移到固定的「已完成」分組後，可查看建議關閉的頁籤並一鍵清理。Chrome 提供常駐側欄及選配的 Chrome 書籤同步；Safari 使用固定高度的浮動視窗。
 
 ## 功能
 
@@ -21,6 +21,8 @@
 - 分組：「已完成」是固定分組，不能改名或刪除；更新時會自動補回曾被刪除的「已完成」。其他分組可新增／改名／刪除（改名連動更新書籤、刪除把書籤退回未分組）。
 - 清理 Axure 頁籤：popup、側欄與管理頁會列出所有視窗中屬於「已完成」專案的頁籤，建議關閉並提供一鍵全關。同一專案的不同頁面與重複頁籤都會列入；關閉前重新比對，只關閉清單中仍屬於「已完成」的頁籤。
 - 匯出 `bookmarks.html`（Netscape 格式）：任何瀏覽器「匯入書籤」皆可，是 Safari 寫入真實書籤的正規途徑。
+- JSON 完整備份與還原：管理頁「備份與還原」可匯出含書籤（含造訪次數）、分組與忽略清單的 JSON；匯入只補上目前沒有的書籤，不修改現有書籤，重複匯入同一份也沒有副作用。超過 7 天未備份會以紅字提醒。外掛資料只存在瀏覽器裡，Safari 把外掛當成重新安裝時會整個清除，請把備份檔存在外掛以外的地方。
+- Safari 自動備份：每次書籤有變動，就透過 native messaging 把完整備份寫進外掛 App Extension 自己的容器（`~/Library/Containers/com.example.axurescalescreen.Extension/Data/Library/Application Support/AxureScaleScreen/Backups/<Safari 設定檔>/`），保留 `latest.json` 與最近 30 天的每日備份。Safari 清除外掛資料時不會動到這個容器；偵測到資料被清除時會**暫停自動備份**（不會用空資料蓋掉備份），並在管理頁與 popup 提示「還原自動備份」。Chrome 不支援，相關介面自動隱藏。
 - 提示模式：浮動卡片，或工具列圖示顯示 `＋` 的 badge 模式（設定頁切換）。
 - Chrome 真實書籤同步（單向 push）：把書籤推送到所選 Chrome 書籤資料夾並維護「Axure 書籤」資料夾；Safari 不支援，介面會自動隱藏該區。
 
@@ -35,22 +37,29 @@ npm install
 npm run build
 ```
 
-建置輸出位於 `dist/`。
+建置輸出位於 `dist/`，並同步到 `AxureScaleScreen-extention/` 供 Chrome 載入。
 
 ## 在 Safari 執行（macOS 14+ / Safari 17+）
 1. 先建置 extension：
    ```bash
    npm run build
    ```
-2. 轉換成 Safari App 專案：
+2. 轉換成 Safari App 專案（**只需要做一次**）：
    ```bash
    ./scripts/convert-to-safari-app.sh AxureScaleScreen com.example.axurescalescreen safari-app
    ```
-3. 用 Xcode 開啟 `safari-app/AxureScaleScreen.xcodeproj`。
+3. 用 Xcode 開啟 `safari-app/AxureScaleScreen/AxureScaleScreen.xcodeproj`。
 4. 設定 Signing Team 與唯一 Bundle ID。
 5. 執行一次 App，然後到 Safari 設定中啟用外掛。
 6. 若要在本機 `file://` Axure 匯出檔使用，請在 Safari 的外掛網站權限中允許本機檔案存取。
 7. 打開 Axure 頁面後，點選外掛圖示開始調整縮放。
+
+### 更新 Safari 外掛
+Xcode 專案直接引用 `dist/`，之後每次更新只需要：
+1. `npm run build`（也會把 `src/safari-native/SafariWebExtensionHandler.swift` 同步進 `safari-app/AxureScaleScreen/`，自動備份需要它）
+2. 在 Xcode 按 Run
+
+> ⚠️ **不要重新執行轉換腳本或刪掉 `safari-app/` 重建。** 重新產生專案會讓 Safari 把外掛當成重新安裝，並清除外掛的儲存資料（所有書籤、分組與縮放記錄）。轉換腳本偵測到既有專案，或 Safari 已安裝這個外掛時會直接停止；真的必須重建時，先到管理頁「匯出備份（JSON）」，再以 `ALLOW_REGENERATE=1` 執行，完成後用「匯入備份」還原。
 
 ## 在 Chrome 執行
 1. 先建置 extension：
@@ -58,9 +67,11 @@ npm run build
    npm run build
    ```
 2. 打開 `chrome://extensions`，開啟右上角「開發人員模式」。
-3. 點「載入未封裝項目」，選擇 `dist/` 資料夾。
+3. 點「載入未封裝項目」，選擇 `AxureScaleScreen-extention/` 資料夾。
 4. 若要在本機 `file://` Axure 匯出檔使用，請到該擴充功能的「詳細資料」頁面，開啟「允許存取檔案網址」。
 5. 打開 Axure 頁面後，點選外掛圖示開始調整縮放。
+
+每次更新程式後執行 `npm run build`，再到 `chrome://extensions` 按外掛的「重新載入」。建置會完整同步這個固定資料夾；Safari 轉換流程使用 `dist/`。
 
 注意事項：
 - 縮放快捷鍵 `Cmd/Ctrl + Option + =/-/0` 由 content script 處理，安裝後即可使用，且不與瀏覽器內建縮放（`Cmd +/-`）衝突。
@@ -80,6 +91,7 @@ npm run build
 ```bash
 npm test
 npm run lint
+npm run test:native   # Safari 原生備份 handler（需要 Xcode）
 ```
 
 Safari 手動回歸（更新外掛並重新整理 Axure 頁面後）：
@@ -92,7 +104,7 @@ Vitest 使用 jsdom 驗證事件取消與捲動位移，無法模擬 Safari 原�
 
 ## 部署（第一階段）
 1. 產出建置：`npm run build`。
-2. 轉換 Safari 專案：`./scripts/convert-to-safari-app.sh`。
+2. 第一次部署才需要轉換 Safari 專案：`./scripts/convert-to-safari-app.sh`；之後沿用既有專案（見〈更新 Safari 外掛〉）。
 3. 在 Xcode 簽章並封裝（內部發佈或 TestFlight）。
 4. 附上測試證據（`npm test` 與手動驗證清單）。
 

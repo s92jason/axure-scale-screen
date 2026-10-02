@@ -22,6 +22,25 @@ export interface AxureBookmark {
   visitCount: number;
 }
 
+// 完整 JSON 備份(書籤 + 分組 + 忽略清單)，格式與版本定義在 bookmarkBackup.ts。
+export interface BookmarkBackup {
+  format: 'axure-scale-screen-backup';
+  version: 1;
+  exportedAt: string; // ISO 8601
+  bookmarks: AxureBookmark[];
+  folders: string[];
+  ignored: string[];
+}
+
+// Safari 自動備份(存在 App Extension 容器)的狀態，由背景透過 native messaging 取得。
+export interface NativeBackupStatus {
+  available: boolean; // Safari 且原生程式已更新；Chrome 一律 false 且沒有 error
+  error?: string; // 無法使用的原因(例如 Xcode 專案的原生程式還沒更新)
+  lastBackupAt: number | null; // 最近一份自動備份的時間
+  // 外掛儲存空間被清空(沒有連結標記)但原生備份還在：暫停自動備份，等使用者決定是否還原。
+  pending: { count: number; savedAt: number | null } | null;
+}
+
 export interface CompletedAxureTab {
   tabId: number;
   projectKey: string;
@@ -55,6 +74,10 @@ export type RuntimeMessage =
   | { type: 'BOOKMARK_ADD_FOLDER'; name: string }
   | { type: 'BOOKMARK_RENAME_FOLDER'; name: string; newName: string }
   | { type: 'BOOKMARK_REMOVE_FOLDER'; name: string }
+  | { type: 'BOOKMARK_IMPORT'; backup: BookmarkBackup }
+  | { type: 'NATIVE_BACKUP_STATUS' }
+  | { type: 'NATIVE_BACKUP_RESTORE' }
+  | { type: 'NATIVE_BACKUP_DISMISS' }
   | { type: 'AXURE_GET_COMPLETED_TABS' }
   | { type: 'AXURE_CLOSE_COMPLETED_TABS'; tabIds: number[] }
   | { type: 'SETTINGS_GET' }
@@ -73,6 +96,8 @@ export type RuntimeResponse =
       syncedCount?: number;
       completedTabs?: CompletedAxureTab[];
       closedCount?: number;
+      imported?: { added: number; skipped: number };
+      nativeBackup?: NativeBackupStatus;
     }
   | { ok: false; error: string; completedTabs?: CompletedAxureTab[]; closedCount?: number };
 
@@ -126,7 +151,10 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
     candidate.type === 'BOOKMARK_GET_FOLDERS' ||
     candidate.type === 'AXURE_GET_COMPLETED_TABS' ||
     candidate.type === 'SETTINGS_GET' ||
-    candidate.type === 'SYNC_NOW'
+    candidate.type === 'SYNC_NOW' ||
+    candidate.type === 'NATIVE_BACKUP_STATUS' ||
+    candidate.type === 'NATIVE_BACKUP_RESTORE' ||
+    candidate.type === 'NATIVE_BACKUP_DISMISS'
   ) {
     return true;
   }
@@ -137,6 +165,11 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
 
   if (candidate.type === 'SETTINGS_SET') {
     return typeof candidate.settings === 'object' && candidate.settings !== null;
+  }
+
+  // 內容由背景以 normalizeBackup() 逐欄驗證，這裡只擋掉明顯不是物件的訊息。
+  if (candidate.type === 'BOOKMARK_IMPORT') {
+    return typeof candidate.backup === 'object' && candidate.backup !== null;
   }
 
   if (candidate.type === 'BOOKMARK_ADD') {

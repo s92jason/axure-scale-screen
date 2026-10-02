@@ -304,3 +304,37 @@ describe('popup bookmark loading', () => {
     expect(loadStatus().textContent).toContain('書籤讀取失敗：暫時無法讀取');
   });
 });
+
+describe('popup auto backup restore hint', () => {
+  it('points to the management page when an auto backup is waiting to be restored', async () => {
+    runtime.sendMessage.mockImplementation((message: RuntimeMessage, callback: (response: RuntimeResponse) => void) => {
+      callback(
+        message.type === 'NATIVE_BACKUP_STATUS'
+          ? { ok: true, nativeBackup: { available: true, lastBackupAt: 4000, pending: { count: 18, savedAt: 4000 } } }
+          : { ok: false, error: '背景沒有回應' }
+      );
+    });
+
+    await loadPopup();
+    await settle();
+
+    expect(document.querySelector('#bmList .bm-name')!.textContent).toBe(savedBookmark.name);
+    expect(loadStatus().hidden).toBe(false);
+    expect(loadStatus().textContent).toBe('外掛資料可能被清除了：找到 18 筆書籤的自動備份，請按「管理書籤 →」還原。');
+  });
+
+  it('stays quiet when nothing is pending or the background does not answer', async () => {
+    runtime.sendMessage.mockImplementation((message: RuntimeMessage, callback: (response: RuntimeResponse) => void) => {
+      callback(
+        message.type === 'NATIVE_BACKUP_STATUS'
+          ? { ok: true, nativeBackup: { available: true, lastBackupAt: 4000, pending: null } }
+          : { ok: false, error: '背景沒有回應' }
+      );
+    });
+
+    await loadPopup();
+    await settle();
+
+    expectSavedBookmark();
+  });
+});

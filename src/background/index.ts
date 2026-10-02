@@ -1,3 +1,4 @@
+import { normalizeBackup } from '../shared/bookmarkBackup';
 import {
   addBookmark,
   addFolder,
@@ -7,6 +8,7 @@ import {
   getIgnored,
   getSettings,
   ignoreBookmark,
+  importBackup,
   isIgnored,
   recordVisit,
   removeBookmark,
@@ -21,6 +23,7 @@ import { toProjectKey } from '../shared/projectKey';
 import { getZoomState, resetZoomState, setZoomState } from '../shared/storage';
 import { planSync } from '../shared/syncPlan';
 import { isRuntimeMessage } from '../shared/types';
+import { dismissNativeBackup, getNativeBackupStatus, restoreNativeBackup, scheduleNativeBackup } from './native-backup';
 import { closeCompletedTabs, getCompletedTabs } from './tab-cleanup';
 
 // ── Chrome 真實書籤同步(單向 push：plugin → Chrome 書籤) ──────────
@@ -140,6 +143,12 @@ function maybeSync(): void {
   void syncToChrome().catch(() => {
     /* 自動同步失敗忽略 */
   });
+}
+
+// 書籤、分組或忽略清單有變動：推送 Chrome 書籤，並排程 Safari 自動備份。
+function afterBookmarkChange(): void {
+  maybeSync();
+  scheduleNativeBackup();
 }
 
 const COMMAND_TO_MESSAGE = {
@@ -356,18 +365,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             folder: message.folder
           });
           sendResponse({ ok: true, bookmark });
-          maybeSync();
+          afterBookmarkChange();
           return;
         }
         case 'BOOKMARK_REMOVE': {
           await removeBookmark(message.projectKey);
           sendResponse({ ok: true });
-          maybeSync();
+          afterBookmarkChange();
           return;
         }
         case 'BOOKMARK_RECORD_VISIT': {
           await recordVisit(message.projectKey);
           sendResponse({ ok: true });
+          scheduleNativeBackup();
           return;
         }
         case 'BOOKMARK_DETECTED': {
@@ -378,19 +388,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case 'BOOKMARK_IGNORE': {
           await ignoreBookmark(message.projectKey);
           sendResponse({ ok: true });
-          maybeSync();
+          afterBookmarkChange();
           return;
         }
         case 'BOOKMARK_RENAME': {
           await renameBookmark(message.projectKey, message.name);
           sendResponse({ ok: true });
-          maybeSync();
+          afterBookmarkChange();
           return;
         }
         case 'BOOKMARK_SET_FOLDER': {
           await setFolder(message.projectKey, message.folder);
           sendResponse({ ok: true });
-          maybeSync();
+          afterBookmarkChange();
           return;
         }
         case 'BOOKMARK_GET_IGNORED': {
@@ -400,6 +410,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case 'BOOKMARK_UNIGNORE': {
           await unignoreProject(message.projectKey);
           sendResponse({ ok: true });
+          scheduleNativeBackup();
           return;
         }
         case 'BOOKMARK_GET_FOLDERS': {
@@ -408,18 +419,40 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
         case 'BOOKMARK_ADD_FOLDER': {
           sendResponse({ ok: true, folders: await addFolder(message.name) });
+          scheduleNativeBackup();
           return;
         }
         case 'BOOKMARK_RENAME_FOLDER': {
           await renameFolder(message.name, message.newName);
           sendResponse({ ok: true, folders: await getFolders() });
-          maybeSync();
+          afterBookmarkChange();
           return;
         }
         case 'BOOKMARK_REMOVE_FOLDER': {
           await removeFolder(message.name);
           sendResponse({ ok: true, folders: await getFolders() });
+          afterBookmarkChange();
+          return;
+        }
+        case 'BOOKMARK_IMPORT': {
+          const imported = await importBackup(normalizeBackup(message.backup));
+          sendResponse({ ok: true, imported });
+          afterBookmarkChange();
+          return;
+        }
+        case 'NATIVE_BACKUP_STATUS': {
+          sendResponse({ ok: true, nativeBackup: await getNativeBackupStatus() });
+          return;
+        }
+        case 'NATIVE_BACKUP_RESTORE': {
+          const imported = await restoreNativeBackup();
+          sendResponse({ ok: true, imported });
           maybeSync();
+          return;
+        }
+        case 'NATIVE_BACKUP_DISMISS': {
+          await dismissNativeBackup();
+          sendResponse({ ok: true });
           return;
         }
         case 'AXURE_GET_COMPLETED_TABS': {
@@ -477,4 +510,8 @@ function setupSidePanel(): void {
 }
 
 setupSidePanel();
-chrome.runtime.onInstalled.addListener(() => setupSidePanel());
+chrome.runtime.onInstalled.addListener(() => {
+  setupSidePanel();
+  scheduleNativeBackup(); // 安裝或更新後立即建立／更新自動備份
+});
+chrome.runtime.onStartup?.addListener(() => scheduleNativeBackup());

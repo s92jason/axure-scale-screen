@@ -2,7 +2,7 @@
 
 ## 專案結構與模組規劃
 本專案目前以 Safari Web Extension 為主，請維持下列結構：
-- `src/`：外掛主要程式碼（`background`、`content`、`popup`、`shared`）
+- `src/`：外掛主要程式碼（`background`、`content`、`popup`、`shared`）；`src/safari-native/` 是 Safari App Extension 的 Swift 原生程式（自動備份），由 `npm run build` 同步進 `safari-app/`
 - `tests/`：測試程式（`unit`、`integration`）
 - `scripts/`：開發與部署輔助腳本
 - `dist/`：建置輸出（由 Vite 產生，不手動編輯）

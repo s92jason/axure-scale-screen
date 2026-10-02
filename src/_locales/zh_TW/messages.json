@@ -8,7 +8,7 @@
     "description": "Short extension name for compact browser surfaces."
   },
   "extensionDescription": {
-    "message": "讓 Axure 原型更容易縮放、收藏、分組與匯出，支援 Chrome 與 Safari Web Extension。",
+    "message": "縮放與管理 Axure 原型：書籤收藏、分組、匯出與 Chrome 書籤同步，並一鍵清理已完成專案的頁籤。",
     "description": "Extension description shown in browser stores and extension managers."
   }
 }

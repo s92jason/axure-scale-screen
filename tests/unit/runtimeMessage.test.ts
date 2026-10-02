@@ -30,6 +30,16 @@ describe('isRuntimeMessage', () => {
       isRuntimeMessage({ type: 'SETTINGS_SET', settings: { promptMode: 'badge', chromeSync: { enabled: false, parentFolderId: null } } })
     ).toBe(true);
     expect(isRuntimeMessage({ type: 'SYNC_NOW' })).toBe(true);
+    expect(isRuntimeMessage({ type: 'BOOKMARK_IMPORT', backup: { format: 'axure-scale-screen-backup' } })).toBe(true);
+    expect(isRuntimeMessage({ type: 'NATIVE_BACKUP_STATUS' })).toBe(true);
+    expect(isRuntimeMessage({ type: 'NATIVE_BACKUP_RESTORE' })).toBe(true);
+    expect(isRuntimeMessage({ type: 'NATIVE_BACKUP_DISMISS' })).toBe(true);
+  });
+
+  it('rejects import messages without a backup object', () => {
+    expect(isRuntimeMessage({ type: 'BOOKMARK_IMPORT' })).toBe(false);
+    expect(isRuntimeMessage({ type: 'BOOKMARK_IMPORT', backup: null })).toBe(false);
+    expect(isRuntimeMessage({ type: 'BOOKMARK_IMPORT', backup: '{}' })).toBe(false);
   });
 
   it('rejects bookmark messages missing required fields', () => {

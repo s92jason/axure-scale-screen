@@ -1,6 +1,7 @@
+import { mergeBackup, type BackupData } from './bookmarkBackup';
 import { COMPLETED_FOLDER, STORAGE_PREFIX } from './constants';
 import { getStorageValue, setStorageValue } from './storage';
-import type { AxureBookmark, Settings } from './types';
+import type { AxureBookmark, BookmarkBackup, Settings } from './types';
 
 // 單層書籤 schema(plan 附錄 B.5.1，2026-06-16 簡化)。
 // axshare 的子網域本身就是穩定身份，url 不會變，所以 projectKey 同時當「身份」與「去重 key」。
@@ -21,6 +22,8 @@ const ITEMS_KEY = `${BM_PREFIX}items`;
 const IGNORED_KEY = `${BM_PREFIX}ignored`;
 const SETTINGS_KEY = `${BM_PREFIX}settings`;
 const FOLDERS_KEY = `${BM_PREFIX}folders`;
+const BACKUP_META_KEY = `${BM_PREFIX}backup`;
+const NATIVE_LINK_KEY = `${BM_PREFIX}nativeLink`;
 
 const DEFAULT_SETTINGS: Settings = {
   promptMode: 'card',
@@ -238,6 +241,49 @@ export async function removeFolder(name: string): Promise<void> {
   if (changed) {
     await writeItems(items);
   }
+}
+
+// ── JSON 備份 ────────────────────────────────────────────────
+// 匯出只讀不寫(分組用 getStoredFolders，不會順手種入預設分組)。
+export async function getBackupData(): Promise<BackupData> {
+  const [bookmarks, folders, ignored] = await Promise.all([getAllBookmarks(), getStoredFolders(), getIgnored()]);
+  return { bookmarks, folders, ignored };
+}
+
+export async function importBackup(backup: BookmarkBackup): Promise<{ added: number; skipped: number }> {
+  const [items, folders, ignored] = await Promise.all([readItems(), getFolders(), getIgnored()]);
+  const merged = mergeBackup({ items, folders, ignored }, backup);
+
+  if (merged.added > 0) {
+    await writeItems(merged.items);
+  }
+  if (merged.folders.length !== folders.length) {
+    await setStorageValue(FOLDERS_KEY, merged.folders);
+  }
+  if (merged.ignored.length !== ignored.length) {
+    await setStorageValue(IGNORED_KEY, merged.ignored);
+  }
+  return { added: merged.added, skipped: merged.skipped };
+}
+
+export async function getLastBackupAt(): Promise<number | null> {
+  const meta = await getStorageValue<{ lastExportedAt?: unknown }>(BACKUP_META_KEY);
+  return typeof meta?.lastExportedAt === 'number' ? meta.lastExportedAt : null;
+}
+
+export async function markBackupExported(at = Date.now()): Promise<void> {
+  await setStorageValue(BACKUP_META_KEY, { lastExportedAt: at });
+}
+
+// 自動備份的連結標記：和書籤存在同一個 storage，Safari 清掉 storage 時會一起消失，
+// 背景藉此分辨「全新安裝」與「資料被清除」，後者不能拿空資料覆蓋原生備份。
+export async function getNativeBackupLinkedAt(): Promise<number | null> {
+  const link = await getStorageValue<{ linkedAt?: unknown }>(NATIVE_LINK_KEY);
+  return typeof link?.linkedAt === 'number' ? link.linkedAt : null;
+}
+
+export async function linkNativeBackup(at = Date.now()): Promise<void> {
+  await setStorageValue(NATIVE_LINK_KEY, { linkedAt: at });
 }
 
 export async function getSettings(): Promise<Settings> {
