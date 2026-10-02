@@ -43,15 +43,22 @@ npm run build
    ```bash
    npm run build
    ```
-2. 轉換成 Safari App 專案：
+2. 轉換成 Safari App 專案（**只需要做一次**）：
    ```bash
    ./scripts/convert-to-safari-app.sh AxureScaleScreen com.example.axurescalescreen safari-app
    ```
-3. 用 Xcode 開啟 `safari-app/AxureScaleScreen.xcodeproj`。
+3. 用 Xcode 開啟 `safari-app/AxureScaleScreen/AxureScaleScreen.xcodeproj`。
 4. 設定 Signing Team 與唯一 Bundle ID。
 5. 執行一次 App，然後到 Safari 設定中啟用外掛。
 6. 若要在本機 `file://` Axure 匯出檔使用，請在 Safari 的外掛網站權限中允許本機檔案存取。
 7. 打開 Axure 頁面後，點選外掛圖示開始調整縮放。
+
+### 更新 Safari 外掛
+Xcode 專案直接引用 `dist/`，之後每次更新只需要：
+1. `npm run build`
+2. 在 Xcode 按 Run
+
+> ⚠️ **不要重新執行轉換腳本或刪掉 `safari-app/` 重建。** 重新產生專案會讓 Safari 把外掛當成重新安裝，並清除外掛的儲存資料（所有書籤、分組與縮放記錄）。轉換腳本偵測到既有專案，或 Safari 已安裝這個外掛時會直接停止；真的必須重建時，先到管理頁「匯出備份（JSON）」，再以 `ALLOW_REGENERATE=1` 執行，完成後用「匯入備份」還原。
 
 ## 在 Chrome 執行
 1. 先建置 extension：
@@ -93,7 +100,7 @@ Vitest 使用 jsdom 驗證事件取消與捲動位移，無法模擬 Safari 原�
 
 ## 部署（第一階段）
 1. 產出建置：`npm run build`。
-2. 轉換 Safari 專案：`./scripts/convert-to-safari-app.sh`。
+2. 第一次部署才需要轉換 Safari 專案：`./scripts/convert-to-safari-app.sh`；之後沿用既有專案（見〈更新 Safari 外掛〉）。
 3. 在 Xcode 簽章並封裝（內部發佈或 TestFlight）。
 4. 附上測試證據（`npm test` 與手動驗證清單）。
 
