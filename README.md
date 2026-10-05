@@ -1,6 +1,6 @@
 # Axure Scale Screen（Chrome 與 Safari 外掛）
 
-Axure Scale Screen 是適用於 Chrome 與 Safari 的 Axure 原型工具，提供滑桿、快捷鍵與觸控板縮放，以及書籤收藏、搜尋、分組和匯出。把專案移到固定的「已完成」分組後，可查看建議關閉的頁籤並一鍵清理。Chrome 提供常駐側欄及選配的 Chrome 書籤同步；Safari 使用固定高度的浮動視窗。
+Axure Scale Screen 是適用於 Chrome 與 Safari 的 Axure 原型工具，提供滑桿、快捷鍵與觸控板縮放，以及書籤收藏、搜尋、分組、匯出與備份還原。把專案移到固定的「已完成」分組後，可查看建議關閉的頁籤並一鍵清理。Chrome 提供常駐側欄及選配的 Chrome 書籤同步；Safari 使用固定高度的浮動視窗。
 
 ## 功能
 
@@ -101,6 +101,11 @@ Safari 手動回歸（更新外掛並重新整理 Axure 頁面後）：
 4. 若原型位於 iframe，也在該 frame 內測試；開啟一般網站，確認原本的 Safari 手勢仍可使用。
 
 Vitest 使用 jsdom 驗證事件取消與捲動位移，無法模擬 Safari 原生歷史導覽手勢；上述步驟需在實際 Safari 驗證。
+
+## 版本與更新紀錄
+- 版號以 `src/manifest.json` 為準，各版本的變更見 [CHANGELOG.md](CHANGELOG.md)。
+- 完成功能或修正後執行 `npm run release`：依 Conventional Commits 推斷版號（`feat` → minor、其他 → patch），同步 `package.json`、`package-lock.json`、Xcode 專案的 `MARKETING_VERSION`，並在 CHANGELOG 加入新段落。也可指定 `npm run release -- patch|minor|major|x.y.z`，或加 `-- --dry-run` 預覽。
+- `npm test` 會檢查各處版號一致、CHANGELOG 已記錄目前版本，以及外掛描述未超過 Chrome Web Store 的 132 字元上限。
 
 ## 部署（第一階段）
 1. 產出建置：`npm run build`。

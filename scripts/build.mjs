@@ -2,6 +2,7 @@ import { copyFileSync, cpSync, existsSync, readFileSync, rmSync } from 'node:fs'
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
+import { pendingRelease } from './release-lib.mjs';
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(scriptDir, '..');
@@ -102,6 +103,11 @@ async function main() {
   cpSync(distDir, chromeDistDir, { recursive: true, force: true });
   console.log(`Chrome 建置輸出：${chromeDistDir}`);
   syncSafariHandler();
+  // 開發完常忘了進版：有尚未進版的 feat/fix 時提醒一行，不擋建置。
+  const pending = pendingRelease(rootDir);
+  if (pending && pending.count > 0) {
+    console.log(`提醒：自 ${pending.version} 以來有 ${pending.count} 個使用者可見的 commit 尚未進版，完成開發後執行 npm run release`);
+  }
 }
 
 main().catch((error) => {

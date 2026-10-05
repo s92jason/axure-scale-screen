@@ -8,7 +8,7 @@
     "description": "Short extension name for compact browser surfaces."
   },
   "extensionDescription": {
-    "message": "縮放與管理 Axure 原型：書籤收藏、分組、匯出與 Chrome 書籤同步，並一鍵清理已完成專案的頁籤。",
+    "message": "縮放與管理 Axure 原型：書籤收藏、分組、匯出與備份還原、Chrome 書籤同步，並一鍵清理已完成專案的頁籤。",
     "description": "Extension description shown in browser stores and extension managers."
   }
 }

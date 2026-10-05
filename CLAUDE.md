@@ -29,6 +29,16 @@
   - `git status` 可能因 index 過期，把**已 commit 的變更**誤報成「未提交」。
 - **規則：預設把 git 寫入指令交給使用者在 Mac 上執行**（見〈進版流程〉）。
 
+## 開發收尾（每次完成功能或修正都要做）
+
+> 過去常漏掉進版號、文件與外掛描述。**任何 feat / fix 完成、開 PR 之前，一律執行 `release` skill**（`.claude/skills/release/SKILL.md`），不必等使用者提醒。
+
+1. **文件**：README、`src/_locales/*/messages.json` 的 `extensionDescription`、manifest 的使用者可見字串，對照本次變更更新 → `docs(...)` commit。
+2. **進版**：`npm run release`（依 commit 推斷版號，或 `-- patch|minor|major|x.y.z`）同步 manifest / package.json / package-lock.json 並產生 `CHANGELOG.md` 段落；潤飾 CHANGELOG → `chore(release): 進版至 X.Y.Z` commit。
+3. **驗證**：`npm run lint`、`npm test`。`tests/unit/release.test.ts` 會擋版號不一致、CHANGELOG 缺當前版本、描述超過 132 字元。
+- `npm run build` 結尾若印出「尚未進版」提醒，代表還沒做完這一節。
+- 版號的唯一來源是 `src/manifest.json`，不要手改其他檔案的版號。
+
 ## 進版流程（commit / push）
 
 ### 慣例
