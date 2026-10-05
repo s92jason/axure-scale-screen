@@ -1,6 +1,6 @@
 # Axure Scale Screen（Chrome 與 Safari 外掛）
 
-Axure Scale Screen 是適用於 Chrome 與 Safari 的 Axure 原型工具，提供滑桿、快捷鍵與觸控板縮放，以及書籤收藏、搜尋、分組和匯出。把專案移到固定的「已完成」分組後，可查看建議關閉的頁籤並一鍵清理。Chrome 提供常駐側欄及選配的 Chrome 書籤同步；Safari 使用固定高度的浮動視窗。
+Axure Scale Screen 是適用於 Chrome 與 Safari 的 Axure 原型工具，提供滑桿、快捷鍵與觸控板縮放，以及書籤收藏、搜尋、分組、匯出與備份還原。把專案移到固定的「已完成」分組後，可查看建議關閉的頁籤並一鍵清理。Chrome 提供常駐側欄及選配的 Chrome 書籤同步；Safari 使用固定高度的浮動視窗。
 
 ## 功能
 

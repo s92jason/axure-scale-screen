@@ -8,7 +8,7 @@
     "description": "Short extension name for compact browser surfaces."
   },
   "extensionDescription": {
-    "message": "Zoom Axure prototypes, organize bookmarks, export, sync Chrome bookmarks, and close completed project tabs in one click.",
+    "message": "Zoom Axure prototypes, organize, export and back up bookmarks, sync Chrome bookmarks, and close completed project tabs in one click.",
     "description": "Extension description shown in browser stores and extension managers."
   }
 }
