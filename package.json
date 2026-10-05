@@ -9,6 +9,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:native": "bash scripts/test-safari-native.sh",
+    "release": "node scripts/release.mjs",
     "lint": "tsc --noEmit"
   },
   "devDependencies": {
