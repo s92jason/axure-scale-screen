@@ -102,6 +102,11 @@ Safari 手動回歸（更新外掛並重新整理 Axure 頁面後）：
 
 Vitest 使用 jsdom 驗證事件取消與捲動位移，無法模擬 Safari 原生歷史導覽手勢；上述步驟需在實際 Safari 驗證。
 
+## 版本與更新紀錄
+- 版號以 `src/manifest.json` 為準，各版本的變更見 [CHANGELOG.md](CHANGELOG.md)。
+- 完成功能或修正後執行 `npm run release`：依 Conventional Commits 推斷版號（`feat` → minor、其他 → patch），同步 `package.json`、`package-lock.json`、Xcode 專案的 `MARKETING_VERSION`，並在 CHANGELOG 加入新段落。也可指定 `npm run release -- patch|minor|major|x.y.z`，或加 `-- --dry-run` 預覽。
+- `npm test` 會檢查各處版號一致、CHANGELOG 已記錄目前版本，以及外掛描述未超過 Chrome Web Store 的 132 字元上限。
+
 ## 部署（第一階段）
 1. 產出建置：`npm run build`。
 2. 第一次部署才需要轉換 Safari 專案：`./scripts/convert-to-safari-app.sh`；之後沿用既有專案（見〈更新 Safari 外掛〉）。

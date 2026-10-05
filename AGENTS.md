@@ -14,6 +14,7 @@
 - `npm run build`：正式建置並輸出 `dist/manifest.json`
 - `npm test`：執行 Vitest 測試
 - `npm run lint`：以 TypeScript 檢查型別
+- `npm run release`：進版（同步各處版號並產生 `CHANGELOG.md` 段落；加 `-- --dry-run` 只預覽）
 
 常見流程：
 ```bash
@@ -39,6 +40,7 @@ npm test
 - Commit 採**帶 scope 的** Conventional Commits：
   - `feat(zoom): 新增 Axure 縮放快捷鍵`
   - `fix(popup): 修正重置後倍率未同步`
+- 完成 feat / fix 後，PR 內須包含版號、`CHANGELOG.md` 與相關文件（README、外掛描述）的更新，流程見 `.claude/skills/release/SKILL.md`。
 - PR 請附：
   - 變更摘要與動機
   - 測試結果（指令與輸出）
